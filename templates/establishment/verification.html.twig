@@ -1,0 +1,15 @@
+{# templates/establishment/verification.html.twig #}
+
+{% extends 'base.html.twig' %}
+
+{% block body %}
+    <h1>Vérification de votre établissement</h1>
+    <p>Pour activer votre établissement, veuillez fournir les documents suivants :</p>
+    
+    {{ form_start(form, {'attr': {'enctype': 'multipart/form-data'}}) }}
+        {{ form_row(form.idDocument) }}
+        {{ form_row(form.selfie) }}
+        {{ form_row(form.cardInfo) }}
+        <button type="submit" class="btn btn-primary">Soumettre</button>
+    {{ form_end(form) }}
+{% endblock %}

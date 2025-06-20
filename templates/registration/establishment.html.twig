@@ -1,0 +1,1302 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}Inscription Établissement | MayMap
+{% endblock %}
+
+{% block stylesheets %}
+	{{ parent() }}
+	<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/animate.css/4.1.1/animate.min.css"/>
+	<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css"/>
+	<style>
+        body {
+            background-color: #f8f9fa;
+            padding: 20px;
+        }
+        
+        .registration-container {
+            max-width: 900px;
+            margin: 2rem auto;
+            padding: 2.5rem;
+            background: white;
+            border-radius: 20px;
+            box-shadow: 0 15px 40px rgba(0, 0, 0, 0.12);
+        }
+        
+        .form-section {
+            background: rgba(248, 249, 250, 0.8);
+            padding: 2rem;
+            border-radius: 15px;
+            margin-bottom: 2.5rem;
+            border: 1px solid rgba(0, 0, 0, 0.05);
+        }
+        
+        .form-section-title {
+            font-size: 1.3rem;
+            font-weight: 700;
+            margin-bottom: 1.5rem;
+            color: #6200ee;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+        
+        .horaire-row {
+            transition: all 0.3s;
+            padding: 10px;
+            border-radius: 8px;
+            margin-bottom: 15px;
+            background-color: #fff;
+            border: 1px solid #e0e0e0;
+        }
+        
+        .horaire-row:hover {
+            background-color: #f9f9f9;
+            box-shadow: 0 3px 10px rgba(0, 0, 0, 0.08);
+        }
+        
+        .remove-horaire-btn {
+            background: #ff4757;
+            color: white;
+            border: none;
+            border-radius: 50%;
+            width: 30px;
+            height: 30px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+        
+        .remove-horaire-btn:hover {
+            background: #d63031;
+            transform: scale(1.1);
+        }
+        
+        .add-horaire-btn {
+            background: #6200ee;
+            color: white;
+            border: none;
+            border-radius: 8px;
+            padding: 8px 16px;
+            cursor: pointer;
+            transition: all 0.3s;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+        
+        .add-horaire-btn:hover {
+            background: #4a00c0;
+            transform: translateY(-2px);
+        }
+        
+        .time-select {
+            padding: 8px 12px;
+            border-radius: 8px;
+            border: 1px solid #ced4da;
+        }
+    </style>
+	<style>:root
+	{
+		--primary-color: #6200ee;
+		--secondary-color: #03dac6;
+		--dark-color: #121212;
+		--light-color: #f8f9fa;
+		--error-color: #ff4757;
+	}
+
+	.registration-container {
+		max-width: 900px;
+		margin: 2rem auto;
+		padding: 2.5rem;
+		background: white;
+		border-radius: 20px;
+		box-shadow: 0 15px 40px rgba(0, 0, 0, 0.12);
+		position: relative;
+		overflow: hidden;
+	}
+
+	.registration-container::before {
+		content: '';
+		position: absolute;
+		top: 0;
+		left: 0;
+		width: 100%;
+		height: 8px;
+		background: linear-gradient(90deg, var(--primary-color), var(--secondary-color));
+	}
+
+	.registration-header {
+		text-align: center;
+		margin-bottom: 2.5rem;
+	}
+
+	.registration-header h1 {
+		font-size: 2.5rem;
+		font-weight: 800;
+		margin-bottom: 0.75rem;
+		background: linear-gradient(45deg, var(--primary-color), var(--secondary-color));
+		-webkit-background-clip: text;
+		background-clip: text;
+		color: transparent;
+		letter-spacing: -0.5px;
+	}
+
+	.registration-header p {
+		color: #666;
+		font-size: 1.1rem;
+		max-width: 600px;
+		margin: 0 auto;
+	}
+
+	.form-group {
+		margin-bottom: 1.75rem;
+		position: relative;
+	}
+
+	.form-label {
+		display: block;
+		margin-bottom: 0.5rem;
+		font-weight: 600;
+		color: var(--dark-color);
+	}
+
+	.form-control {
+		border-radius: 12px;
+		padding: 14px 18px;
+		border: 2px solid #e0e0e0;
+		transition: all 0.3s cubic-bezier(0.25, 0.8, 0.25, 1);
+		width: 100%;
+		font-size: 1rem;
+		background-color: #fcfcfc;
+	}
+
+	.form-control:focus {
+		border-color: var(--primary-color);
+		box-shadow: 0 0 0 4px rgba(98, 0, 238, 0.15);
+		background-color: white;
+		outline: none;
+	}
+
+	.btn-register {
+		background: linear-gradient(45deg, var(--primary-color), var(--secondary-color));
+		border: none;
+		color: white;
+		padding: 14px 0;
+		border-radius: 12px;
+		font-weight: 700;
+		width: 100%;
+		transition: all 0.3s cubic-bezier(0.25, 0.8, 0.25, 1);
+		box-shadow: 0 4px 15px rgba(98, 0, 238, 0.25);
+		font-size: 1.05rem;
+		letter-spacing: 0.5px;
+	}
+
+	.btn-register:hover {
+		transform: translateY(-3px);
+		box-shadow: 0 8px 25px rgba(98, 0, 238, 0.35);
+	}
+
+	.login-link {
+		text-align: center;
+		margin-top: 2rem;
+		color: #666;
+		font-size: 1rem;
+	}
+
+	.login-link a {
+		color: var(--primary-color);
+		font-weight: 600;
+		text-decoration: none;
+		transition: all 0.2s;
+	}
+
+	.login-link a:hover {
+		color: var(--secondary-color);
+		text-decoration: underline;
+	}
+
+	/* Drag and drop styles */
+	.drag-drop-container {
+		margin-top: 1rem;
+	}
+
+	.drag-drop-area {
+		border: 3px dashed #ddd;
+		border-radius: 15px;
+		padding: 2.5rem 1rem;
+		text-align: center;
+		cursor: pointer;
+		transition: all 0.3s;
+		background-color: #fafafa;
+		position: relative;
+		overflow: hidden;
+	}
+
+	.drag-drop-area:hover,
+	.drag-drop-area.dragover {
+		border-color: var(--primary-color);
+		background-color: rgba(98, 0, 238, 0.03);
+	}
+
+	.drag-drop-icon {
+		font-size: 2.5rem;
+		color: var(--primary-color);
+		margin-bottom: 1rem;
+		transition: all 0.3s;
+	}
+
+	.drag-drop-text {
+		font-size: 1.1rem;
+		color: #555;
+		margin-bottom: 0.5rem;
+	}
+
+	.drag-drop-hint {
+		font-size: 0.9rem;
+		color: #888;
+	}
+
+	.drag-drop-area.dragover .drag-drop-icon {
+		transform: scale(1.1);
+		color: var(--secondary-color);
+	}
+
+	.image-preview {
+		display: flex;
+		flex-wrap: wrap;
+		gap: 15px;
+		margin-top: 20px;
+	}
+
+	.image-preview-item {
+		width: 100px;
+		height: 100px;
+		border-radius: 12px;
+		object-fit: cover;
+		border: 2px solid #e0e0e0;
+		position: relative;
+		transition: all 0.3s;
+		box-shadow: 0 3px 10px rgba(0, 0, 0, 0.08);
+	}
+
+	.image-preview-item:hover {
+		transform: translateY(-5px);
+		box-shadow: 0 8px 20px rgba(0, 0, 0, 0.12);
+	}
+
+	.image-preview-item:first-child::after {
+		content: 'LOGO PRINCIPAL';
+		position: absolute;
+		bottom: 0;
+		left: 0;
+		right: 0;
+		background: linear-gradient(transparent, rgba(98, 0, 238, 0.8));
+		color: white;
+		text-align: center;
+		font-size: 0.7rem;
+		padding: 12px 0 4px;
+		border-bottom-left-radius: 10px;
+		border-bottom-right-radius: 10px;
+		font-weight: 600;
+	}
+
+	.remove-image-btn {
+		position: absolute;
+		top: 5px;
+		right: 5px;
+		width: 24px;
+		height: 24px;
+		background-color: var(--error-color);
+		color: white;
+		border-radius: 50%;
+		display: flex;
+		align-items: center;
+		justify-content: center;
+		font-size: 0.8rem;
+		cursor: pointer;
+		opacity: 0;
+		transition: opacity 0.3s;
+		border: none;
+		z-index: 2;
+	}
+
+	.image-preview-item:hover .remove-image-btn {
+		opacity: 1;
+	}
+
+	/* Wizard styles */
+	.wizard-step {
+		display: none;
+	}
+
+	.wizard-step.active {
+		display: block;
+		animation: fadeInUp 0.5s ease-out;
+	}
+
+	.wizard-progress {
+		display: flex;
+		justify-content: space-between;
+		margin-bottom: 3rem;
+		position: relative;
+		counter-reset: step;
+	}
+
+	.wizard-progress:before {
+		content: '';
+		position: absolute;
+		top: 50%;
+		left: 0;
+		right: 0;
+		height: 3px;
+		background: #eee;
+		z-index: 0;
+		transform: translateY(-50%);
+	}
+
+	.wizard-progress-step {
+		position: relative;
+		display: flex;
+		flex-direction: column;
+		align-items: center;
+		z-index: 1;
+		flex: 1;
+	}
+
+	.wizard-progress-step:not(:last-child):after {
+		content: '';
+		position: absolute;
+		top: 22px;
+		left: 60%;
+		width: 80%;
+		height: 3px;
+		background: #eee;
+		z-index: -1;
+	}
+
+	.wizard-progress-step.completed:not(:last-child):after {
+		background: var(--secondary-color);
+	}
+
+	.wizard-progress-step-number {
+		width: 44px;
+		height: 44px;
+		border-radius: 50%;
+		background: #eee;
+		color: #666;
+		display: flex;
+		align-items: center;
+		justify-content: center;
+		font-weight: bold;
+		margin-bottom: 0.75rem;
+		border: 4px solid white;
+		position: relative;
+		font-size: 1.1rem;
+		box-shadow: 0 3px 10px rgba(0, 0, 0, 0.1);
+	}
+
+	.wizard-progress-step.active .wizard-progress-step-number {
+		background: var(--primary-color);
+		color: white;
+		transform: scale(1.1);
+	}
+
+	.wizard-progress-step.completed .wizard-progress-step-number {
+		background: var(--secondary-color);
+		color: white;
+	}
+
+	.wizard-progress-step.completed .wizard-progress-step-number:before {
+		content: '\f00c';
+		font-family: 'Font Awesome 6 Free';
+		font-weight: 900;
+	}
+
+	.wizard-progress-step-label {
+		font-size: 0.9rem;
+		color: #888;
+		text-align: center;
+		font-weight: 500;
+		max-width: 100px;
+	}
+
+	.wizard-progress-step.active .wizard-progress-step-label,
+	.wizard-progress-step.completed .wizard-progress-step-label {
+		color: var(--dark-color);
+		font-weight: 600;
+	}
+
+	.wizard-buttons {
+		display: flex;
+		justify-content: space-between;
+		margin-top: 3rem;
+	}
+
+	.wizard-btn {
+		padding: 12px 30px;
+		border-radius: 10px;
+		font-weight: 600;
+		cursor: pointer;
+		transition: all 0.3s;
+		font-size: 1rem;
+		display: flex;
+		align-items: center;
+		gap: 8px;
+	}
+
+	.wizard-btn-prev {
+		background: white;
+		border: 2px solid var(--primary-color);
+		color: var(--primary-color);
+	}
+
+	.wizard-btn-prev:hover {
+		background: rgba(98, 0, 238, 0.08);
+		transform: translateX(-3px);
+	}
+
+	.wizard-btn-next {
+		background: var(--primary-color);
+		border: 2px solid var(--primary-color);
+		color: white;
+	}
+
+	.wizard-btn-next:hover {
+		background: #4a00c0;
+		border-color: #4a00c0;
+		transform: translateX(3px);
+	}
+
+	.wizard-btn-submit {
+		background: linear-gradient(45deg, var(--primary-color), var(--secondary-color));
+		border: none;
+		color: white;
+		padding: 14px 30px;
+		border-radius: 10px;
+		font-weight: 600;
+		cursor: pointer;
+		transition: all 0.3s;
+		box-shadow: 0 4px 20px rgba(98, 0, 238, 0.25);
+		font-size: 1rem;
+		display: flex;
+		align-items: center;
+		gap: 8px;
+	}
+
+	.wizard-btn-submit:hover {
+		transform: translateY(-3px);
+		box-shadow: 0 8px 25px rgba(98, 0, 238, 0.35);
+	}
+
+	@keyframes fadeInUp {
+		from {
+			opacity: 0;
+			transform: translateY(20px);
+		}
+		to {
+			opacity: 1;
+			transform: translateY(0);
+		}
+	}
+
+	/* Form sections */
+	.form-section {
+		background: rgba(248, 249, 250, 0.8);
+		padding: 2rem;
+		border-radius: 15px;
+		margin-bottom: 2.5rem;
+		border: 1px solid rgba(0, 0, 0, 0.05);
+	}
+
+	.form-section-title {
+		font-size: 1.3rem;
+		font-weight: 700;
+		margin-bottom: 1.5rem;
+		color: var(--primary-color);
+		display: flex;
+		align-items: center;
+		gap: 10px;
+	}
+
+	.form-section-title i {
+		font-size: 1.2rem;
+	}
+
+	/* Map styles */
+	#map {
+		height: 350px;
+		width: 100%;
+		margin-top: 10px;
+		border-radius: 15px;
+		border: 2px solid #e0e0e0;
+		box-shadow: 0 3px 15px rgba(0, 0, 0, 0.08);
+	}
+
+	.map-container {
+		margin-bottom: 2rem;
+	}
+
+	.custom-marker {
+		background-color: var(--primary-color);
+		width: 24px;
+		height: 24px;
+		border-radius: 50%;
+		border: 3px solid white;
+		box-shadow: 0 3px 10px rgba(0, 0, 0, 0.2);
+	}
+
+	/* Validation styles */
+	.form-error {
+		color: var(--error-color);
+		font-size: 0.85rem;
+		margin-top: 0.5rem;
+		display: flex;
+		align-items: center;
+		gap: 5px;
+	}
+
+	.is-invalid {
+		border-color: var(--error-color) !important;
+	}
+
+	/* Responsive adjustments */
+	@media(max-width: 768px) {
+		.registration-container {
+			padding: 1.5rem;
+			margin: 1rem;
+		}
+
+		.registration-header h1 {
+			font-size: 2rem;
+		}
+
+		.wizard-progress-step-label {
+			font-size: 0.8rem;
+			max-width: 70px;
+		}
+
+		.form-section {
+			padding: 1.5rem;
+		}
+	}
+
+	/* Styles pour le tableau des horaires */
+	.horaires-table {
+		width: 100%;
+		border-collapse: collapse;
+		margin-bottom: 1rem;
+	}
+
+	.horaires-table th,
+	.horaires-table td {
+		padding: 12px;
+		text-align: left;
+		border-bottom: 1px solid #e0e0e0;
+	}
+
+	.horaires-table th {
+		background-color: #f5f5f5;
+		font-weight: 600;
+	}
+
+	.horaire-row:hover {
+		background-color: #f9f9f9;
+	}
+
+	.time-picker {
+		max-width: 120px;
+	}
+
+	.remove-horaire-btn {
+		background: var(--error-color);
+		color: white;
+		border: none;
+		border-radius: 50%;
+		width: 30px;
+		height: 30px;
+		display: flex;
+		align-items: center;
+		justify-content: center;
+		cursor: pointer;
+	}
+
+	.remove-horaire-btn:hover {
+		background: #d63031;
+	}
+</style>{% endblock %}{% block body %}
+<div class="registration-container animate__animated animate__fadeIn">
+	<div class="registration-header">
+		<h1>Créer un compte établissement</h1>
+		<p>Rejoignez notre plateforme et faites découvrir votre établissement à une communauté passionnée</p>
+	</div>
+
+	<div class="wizard-progress">
+		<div class="wizard-progress-step active" id="wizard-progress-1">
+			<div class="wizard-progress-step-number">1</div>
+			<div class="wizard-progress-step-label">Informations de connexion</div>
+		</div>
+		<div class="wizard-progress-step" id="wizard-progress-2">
+			<div class="wizard-progress-step-number">2</div>
+			<div class="wizard-progress-step-label">Établissement</div>
+		</div>
+		<div class="wizard-progress-step" id="wizard-progress-3">
+			<div class="wizard-progress-step-number">3</div>
+			<div class="wizard-progress-step-label">Localisation</div>
+		</div>
+		<div class="wizard-progress-step" id="wizard-progress-4">
+			<div class="wizard-progress-step-number">4</div>
+			<div class="wizard-progress-step-label">Finalisation</div>
+		</div>
+	</div>
+
+	{{ form_start(registrationForm, {'attr': {'id': 'registration-form', 'class': 'wizard-form', 'data-turbo': 'false'} }) }}
+	<div
+		class="wizard-steps">
+		<!-- Étape 1: Informations de connexion -->
+		<div class="wizard-step active" id="wizard-step-1">
+			<div class="form-section">
+				<div class="form-section-title">
+					<i class="fas fa-user-shield"></i>
+					Informations de connexion
+				</div>
+
+				<div class="form-group">
+					{{ form_row(registrationForm.fname, {
+								'attr': {'class': 'form-control'},
+								'label': 'Nom',
+								'label_attr': {'class': 'form-label is-valid'}
+							}) }}
+				</div>
+
+				<div class="form-group">
+					{{ form_row(registrationForm.lname, {
+								'attr': {'class': 'form-control'},
+								'label': 'Prenom (s)',
+								'label_attr': {'class': 'form-label is-valid'}
+							}) }}
+				</div>
+
+				<div class="form-group">
+					{{ form_row(registrationForm.email, {
+								'attr': {'class': 'form-control'},
+								'label': 'Adresse email',
+								'label_attr': {'class': 'form-label is-valid'}
+							}) }}
+				</div>
+
+				<div class="form-group">
+					{{ form_row(registrationForm.username, {
+								'attr': {'class': 'form-control'},
+								'label': 'Nom d\'utilisateur',
+								'label_attr': {'class': 'form-label'}
+							}) }}
+						</div>
+						
+						<div class="form-group">
+							{{ form_row(registrationForm.plainPassword, {
+								'attr': {'class': 'form-control'},
+								'label': 'Mot de passe',
+								'label_attr': {'class': 'form-label'}
+							}) }}
+						</div>
+					</div>
+
+					<div class="wizard-buttons">
+						<div></div> <!-- Empty div for spacing -->
+						<button type="button" class="wizard-btn wizard-btn-next" onclick="nextStep(2)">
+							Suivant <i class="fas fa-arrow-right"></i>
+						</button>
+					</div>
+				</div>
+
+				<!-- Étape 2: Informations de l'établissement -->
+				<div class="wizard-step" id="wizard-step-2">
+					<div class="form-section">
+						<div class="form-section-title">
+							<i class="fas fa-building"></i>
+							Informations de l'établissement
+						</div>
+						
+						<div class="form-group">
+							{{ form_row(registrationForm.establishmentName, {
+								'attr': {'class': 'form-control'},
+								'label': 'Nom de l\'établissement',
+								'label_attr': {'class': 'form-label'}
+							}) }}
+				</div>
+
+				<div class="form-group">
+					{{ form_row(registrationForm.telephone, {
+								'attr': {'class': 'form-control'},
+								'label': 'Numéro de téléphone',
+								'label_attr': {'class': 'form-label is-valid'}
+							}) }}
+				</div>
+
+				<div class="form-group">
+					{{ form_row(registrationForm.description, {
+								'attr': {'class': 'form-control', 'rows': 5},
+								'label': 'Description',
+								'label_attr': {'class': 'form-label'}
+							}) }}
+				</div>
+
+				<div class="form-group">
+					{{ form_row(registrationForm.type, {
+								'attr': {'class': 'form-control'},
+								'label': 'Type d\'établissement',
+								'label_attr': {'class': 'form-label'}
+							}) }}
+						</div>
+					</div>
+
+<div class="wizard-buttons">
+	<button type="button" class="wizard-btn wizard-btn-prev" onclick="prevStep(1)">
+		<i class="fas fa-arrow-left"></i>
+		Précédent
+	</button>
+	<button type="button" class="wizard-btn wizard-btn-next" onclick="nextStep(3)">
+		Suivant
+		<i class="fas fa-arrow-right"></i>
+	</button>
+</div></div><!-- Étape 3: Localisation --><div class="wizard-step" id="wizard-step-3">
+<div class="form-section">
+	<div class="form-section-title">
+		<i class="fas fa-map-marker-alt"></i>
+		Localisation
+	</div>
+
+	<div class="form-group">
+		{{ form_row(registrationForm.address, {
+								'attr': {'class': 'form-control', 'placeholder': 'Entrez l\'adresse de votre établissement'},
+								'label': 'Adresse',
+								'label_attr': {'class': 'form-label'}
+							}) }}
+						</div>
+						
+						<div class="form-group text-center">
+							<button type="button" id="getLocationBtn" class="btn-register">
+								<i class="fas fa-location-arrow"></i> Utiliser ma position actuelle
+							</button>
+							<div id="locationStatus" class="mt-2" style="display: none;">
+								<i class="fas fa-spinner fa-spin"></i> Localisation en cours...
+							</div>
+						</div>
+						
+						<div class="map-container">
+							<div id="map"></div>
+							{{ form_row(registrationForm.location, {'attr': {'id': 'location'}}) }}
+						</div>
+					</div>
+
+					<div class="wizard-buttons">
+						<button type="button" class="wizard-btn wizard-btn-prev" onclick="prevStep(2)">
+							<i class="fas fa-arrow-left"></i> Précédent
+						</button>
+						<button type="button" class="wizard-btn wizard-btn-next" onclick="nextStep(4)">
+							Suivant <i class="fas fa-arrow-right"></i>
+						</button>
+					</div>
+				</div>
+
+				<!-- Étape 4: Images et finalisation -->
+				<div class="wizard-step" id="wizard-step-4">
+					<div class="form-section">
+						<div class="form-section-title">
+							<i class="fas fa-images"></i>
+							Images de votre établissement
+						</div>
+						
+						<div class="form-group">
+							<label class="form-label">Ajoutez des images de votre établissement
+								<small class="text-muted">(La première image sera utilisée comme logo principal)</small>
+							</label>
+							
+							<div class="drag-drop-container">
+								<div class="drag-drop-area" id="dragDropArea">
+									<div class="drag-drop-icon">
+										<i class="fas fa-cloud-upload-alt"></i>
+									</div>
+									<div class="drag-drop-text">Glissez-déposez vos images ici</div>
+									<div class="drag-drop-hint">ou cliquez pour parcourir vos fichiers</div>
+									{{ form_widget(registrationForm.images, {
+										'attr': {
+											'class': 'd-none',
+											'id': 'fileInput'
+										}
+									}) }}
+								</div>
+								<div class="image-preview" id="imagePreview"></div>
+							</div>
+						</div>
+					</div>
+
+					<div class="wizard-buttons">
+						<button type="button" class="wizard-btn wizard-btn-prev" onclick="prevStep(3)">
+							<i class="fas fa-arrow-left"></i> Précédent
+						</button>
+						<button type="submit" class="wizard-btn wizard-btn-submit">
+							<i class="fas fa-check-circle"></i> Finaliser l'inscription
+						</button>
+					</div>
+				</div>
+			</div>
+		{{ form_end(registrationForm) }}
+
+					<div class="login-link">
+						Vous avez déjà un compte ?
+						<a href="{{ path('app_login') }}">Connectez-vous ici</a>
+					</div>
+				</div>
+			{% endblock %}
+
+			{% block javascripts %}
+				{{ parent() }}
+				<!-- Intégration de Leaflet CSS et JS -->
+				<link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"/>
+			 <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+				<!-- Intégration du plugin de géocodage pour Leaflet -->
+				 <script src="https://unpkg.com/leaflet-control-geocoder/dist/Control.Geocoder.js"></script>
+				 <script src="{{ asset('//assets/vendor/libs/jquery-repeater/jquery-repeater.js') }}"></script>
+
+				 <script>
+																		// Variables globales
+																		let map;
+																		let marker;
+																		let geocoder;
+																		let currentStep = 1;
+																		const totalSteps = 4;
+																		let files = [];
+																
+																		// Initialisation du wizard
+																		document.addEventListener('turbo:load', function() {
+																			// Initialisation de la carte (seulement pour l'étape 3)
+																			initMap();
+																
+																			// Gestion du drag and drop
+																			setupDragAndDrop();
+																		});
+																
+																		// Navigation dans le wizard
+																		function nextStep(step) {
+																			if (validateStep(currentStep)) {
+																				document.querySelector(`#wizard-step-${currentStep}`).classList.remove('active');
+																				document.querySelector(`#wizard-progress-${currentStep}`).classList.remove('active');
+																				
+																				currentStep = step;
+																				
+																				document.querySelector(`#wizard-step-${currentStep}`).classList.add('active');
+																				document.querySelector(`#wizard-progress-${currentStep}`).classList.add('active');
+																				
+																				// Marquer les étapes précédentes comme complétées
+																				for (let i = 1; i < currentStep; i++) {
+																					document.querySelector(`#wizard-progress-${i}`).classList.add('completed');
+																				}
+																				
+																				// Animation
+																				document.querySelector(`#wizard-step-${currentStep}`).classList.add('animate__animated', 'animate__fadeInUp');
+																				
+																				// Si on arrive à l'étape de la carte, on redimensionne
+																				if (currentStep === 3) {
+																					setTimeout(() => {
+																						map.invalidateSize();
+																					}, 500);
+																				}
+																			}
+																		}
+																
+																		function prevStep(step) {
+																			document.querySelector(`#wizard-step-${currentStep}`).classList.remove('active');
+																			document.querySelector(`#wizard-progress-${currentStep}`).classList.remove('active');
+																			
+																			currentStep = step;
+																			
+																			document.querySelector(`#wizard-step-${currentStep}`).classList.add('active');
+																			document.querySelector(`#wizard-progress-${currentStep}`).classList.add('active');
+																			
+																			// Animation
+																			document.querySelector(`#wizard-step-${currentStep}`).classList.add('animate__animated', 'animate__fadeInUp');
+																		}
+																
+																		function validateStep(step) {
+																			let isValid = true;
+																			const stepElement = document.querySelector(`#wizard-step-${step}`);
+																			
+																			// Valider les champs requis
+																			const inputs = stepElement.querySelectorAll('input[required], textarea[required], select[required]');
+																			inputs.forEach(input => {
+																				if (!input.value.trim()) {
+																					input.classList.add('is-invalid');
+																					isValid = false;
+																				} else {
+																					input.classList.remove('is-invalid');
+																				}
+																			});
+																			
+																			return isValid;
+																		}
+																
+																		// Initialisation de la carte
+												function initMap() {
+												    const mapElement = document.getElementById('map');
+												    if (!mapElement) return;
+												
+												    // Initialiser avec une vue centrée sur la France par défaut
+												    map = L.map('map').setView([46.603, 1.888], 5);
+												    
+												    L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+												        attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
+												    }).addTo(map);
+												    
+												    // Initialiser le geocoder
+												    geocoder = L.Control.Geocoder.nominatim();
+												    
+												    // Création du marqueur personnalisé
+												    const customIcon = L.divIcon({
+												        className: 'custom-marker',
+												        iconSize: [30, 30]
+												    });
+												    
+												    marker = L.marker([0, 0], {
+												        draggable: true,
+												        icon: customIcon
+												    }).addTo(map);
+												    
+												    // Gestion du bouton de géolocalisation
+												    const locationBtn = document.getElementById('getLocationBtn');
+												    if (locationBtn) {
+												        locationBtn.addEventListener('click', getCurrentLocation);
+												    }
+												    
+												    // Lorsque le marqueur est déplacé manuellement
+												    marker.on('dragend', function(e) {
+												        const position = marker.getLatLng();
+												        updateLocationField(position);
+												        reverseGeocode(position);
+												    });
+												    
+												    // Écouteur pour le champ d'adresse
+												    const addressField = document.getElementById('registrationForm_address');
+												    if (addressField) {
+												        addressField.addEventListener('change', function() {
+												            if (this.value.trim() !== '') {
+												                geocodeAddress(this.value);
+												            }
+												        });
+												    }
+												}
+												
+												function getCurrentLocation() {
+												    const statusElement = document.getElementById('locationStatus');
+												    const button = document.getElementById('getLocationBtn');
+												    
+												    if (!button) return;
+												    
+												    statusElement.style.display = 'block';
+												    statusElement.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Localisation en cours...';
+												    button.disabled = true;
+												    button.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Localisation...';
+												    
+												    if (navigator.geolocation) {
+												        navigator.geolocation.getCurrentPosition(
+												            function(position) {
+												                const userLocation = [position.coords.latitude, position.coords.longitude];
+												                
+												                // Centrer la carte sur la position
+												                map.setView(userLocation, 15);
+												                marker.setLatLng(userLocation);
+												                updateLocationField(userLocation);
+												                
+												                statusElement.style.display = 'none';
+												                button.disabled = false;
+												                button.innerHTML = '<i class="fas fa-check-circle"></i> Position trouvée';
+												                
+												                // Réinitialiser après 3 secondes
+												                setTimeout(() => {
+												                    button.innerHTML = '<i class="fas fa-location-arrow"></i> Utiliser ma position actuelle';
+												                }, 3000);
+												            },
+												            function(error) {
+												                console.error("Erreur de géolocalisation:", error);
+												                let errorMessage = "Impossible d'obtenir votre position";
+												                
+												                switch(error.code) {
+												                    case error.PERMISSION_DENIED:
+												                        errorMessage = "Vous avez refusé l'accès à la géolocalisation";
+												                        break;
+												                    case error.POSITION_UNAVAILABLE:
+												                        errorMessage = "Position indisponible";
+												                        break;
+												                    case error.TIMEOUT:
+												                        errorMessage = "La requête a expiré";
+												                        break;
+												                }
+												                
+												                statusElement.innerHTML = `<i class="fas fa-exclamation-triangle"></i> ${errorMessage}`;
+												                button.disabled = false;
+												                button.innerHTML = '<i class="fas fa-location-arrow"></i> Réessayer';
+												            },
+												            { enableHighAccuracy: true, timeout: 10000, maximumAge: 0 }
+												        );
+												    } else {
+												        statusElement.innerHTML = '<i class="fas fa-exclamation-triangle"></i> La géolocalisation n\'est pas supportée par votre navigateur';
+												        button.disabled = false;
+												        button.innerHTML = '<i class="fas fa-location-arrow"></i> Non supporté';
+												    }
+												}
+												
+												// Mise à jour du champ location avec les coordonnées
+												function updateLocationField(coords) {
+												    const locationField = document.getElementById('establishment_registration_form_location');
+												
+												    if (locationField) {
+												        console.log("Updating location field with coords:", coords);
+												        locationField.value = JSON.stringify({
+												            latitude: coords[0],
+												            longitude: coords[1]
+												        });
+												        // Ajouter un feedback visuel
+												        locationField.style.border = '2px solid #4CAF50';
+												        setTimeout(() => {
+												            locationField.style.border = '';
+												        }, 2000);
+												    }
+												}
+																		
+																		// Géocodage d'une adresse
+																		function geocodeAddress(address) {
+																			geocoder.geocode(address, function(results) {
+																				if (results && results.length > 0) {
+																					const location = results[0].center;
+																					map.setView(location, 15);
+																					marker.setLatLng(location);
+																					updateLocationField([location.lat, location.lng]);
+																				}
+																			});
+																		}
+																		
+																		// Reverse geocoding pour obtenir l'adresse à partir des coordonnées
+																function reverseGeocode(latlng) {
+																    if (!geocoder || !map) return;
+																
+																    const addressField = document.getElementById('establishment_address');
+																    if (!addressField) return;
+																
+																    geocoder.reverse(latlng, map.options.crs.scale(map.getZoom()), function(results) {
+																        if (results && results.length > 0) {
+																            addressField.value = results[0].name;
+																        }
+																    });
+																}
+																
+																		// Configuration du drag and drop
+																		function setupDragAndDrop() {
+																			const dragDropArea = document.getElementById('dragDropArea');
+																			const fileInput = document.getElementById('fileInput');
+																			const previewContainer = document.getElementById('imagePreview');
+																			
+																			// Événements pour le drag and drop
+																			['dragenter', 'dragover', 'dragleave', 'drop'].forEach(eventName => {
+																				dragDropArea.addEventListener(eventName, preventDefaults, false);
+																			});
+																			
+																			function preventDefaults(e) {
+																				e.preventDefault();
+																				e.stopPropagation();
+																			}
+																			
+																			['dragenter', 'dragover'].forEach(eventName => {
+																				dragDropArea.addEventListener(eventName, highlight, false);
+																			});
+																			
+																			['dragleave', 'drop'].forEach(eventName => {
+																				dragDropArea.addEventListener(eventName, unhighlight, false);
+																			});
+																			
+																			function highlight() {
+																				dragDropArea.classList.add('dragover');
+																			}
+																			
+																			function unhighlight() {
+																				dragDropArea.classList.remove('dragover');
+																			}
+																			
+																			// Gestion du drop
+																			dragDropArea.addEventListener('drop', handleDrop, false);
+																			
+																			function handleDrop(e) {
+																				const dt = e.dataTransfer;
+																				const newFiles = dt.files;
+																				handleFiles(newFiles);
+																			}
+																			
+																			// Gestion du click
+																			dragDropArea.addEventListener('click', () => {
+																				fileInput.click();
+																			});
+																			
+																			// Gestion de la sélection de fichiers
+																			fileInput.addEventListener('change', function() {
+																				if (this.files && this.files.length > 0) {
+																					handleFiles(this.files);
+																				}
+																			});
+																			
+																			// Traitement des fichiers
+																			function handleFiles(newFiles) {
+																				files = Array.from(newFiles);
+																				updatePreview();
+																				updateFileInput();
+																			}
+																			
+																			// Mise à jour de l'aperçu
+																			function updatePreview() {
+																				previewContainer.innerHTML = '';
+																				
+																				if (files.length > 0) {
+																					files.forEach((file, index) => {
+																						const reader = new FileReader();
+																						
+																						reader.onload = function(e) {
+																							const previewItem = document.createElement('div');
+																							previewItem.className = 'image-preview-item-container';
+																							previewItem.style.position = 'relative';
+																							previewItem.style.display = 'inline-block';
+																							
+																							const img = document.createElement('img');
+																							img.src = e.target.result;
+																							img.classList.add('image-preview-item');
+																							
+																							const removeBtn = document.createElement('button');
+																							removeBtn.className = 'remove-image-btn';
+																							removeBtn.innerHTML = '&times;';
+																							removeBtn.title = 'Supprimer cette image';
+																							removeBtn.onclick = () => removeImage(index);
+																							
+																							previewItem.appendChild(img);
+																							previewItem.appendChild(removeBtn);
+																							previewContainer.appendChild(previewItem);
+																						};
+																						
+																						reader.readAsDataURL(file);
+																					});
+																				}
+																			}
+																			
+																			// Suppression d'une image
+																			function removeImage(index) {
+																				files.splice(index, 1);
+																				updatePreview();
+																				updateFileInput();
+																			}
+																			
+																			// Mise à jour de l'input file
+																			function updateFileInput() {
+																				const dataTransfer = new DataTransfer();
+																				files.forEach(file => dataTransfer.items.add(file));
+																				fileInput.files = dataTransfer.files;
+																			}
+																		}
+																	</script>
+
+				 <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+    <script>
+    $(document).ready(function() {
+        let horaireCount = 0;
+        
+        // Fonction pour ajouter une nouvelle ligne d'horaire
+        function addHoraireRow() {
+            horaireCount++;
+            const rowId = `horaire-row-${horaireCount}`;
+            
+            // Créer les options pour les heures
+            let heureOptions = '';
+            for (let h = 0; h < 24; h++) {
+                for (let m = 0; m < 60; m += 30) {
+                    const heure = `${h.toString().padStart(2, '0')}:${m.toString().padStart(2, '0')}`;
+                    heureOptions += `<option value="${heure}">${heure}</option>`;
+                }
+            }
+            
+            // Créer la nouvelle ligne
+            const newRow = `
+                <div class="horaire-row" id="${rowId}">
+                    <div class="row align-items-center">
+                        <div class="col-md-3 mb-3 mb-md-0">
+                            <label class="form-label">Jour</label>
+                            <select class="form-select jour-select" name="horaires[${horaireCount}][jour]" required>
+                                <option value="">Choisir un jour</option>
+                                <option value="lundi">Lundi</option>
+                                <option value="mardi">Mardi</option>
+                                <option value="mercredi">Mercredi</option>
+                                <option value="jeudi">Jeudi</option>
+                                <option value="vendredi">Vendredi</option>
+                                <option value="samedi">Samedi</option>
+                                <option value="dimanche">Dimanche</option>
+                            </select>
+                        </div>
+                        <div class="col-md-3 mb-3 mb-md-0">
+                            <label class="form-label">Heure d'ouverture</label>
+                            <select class="form-select ouverture-select" name="horaires[${horaireCount}][ouverture]" required>
+                                <option value="">Choisir une heure</option>
+                                ${heureOptions}
+                            </select>
+                        </div>
+                        <div class="col-md-3 mb-3 mb-md-0">
+                            <label class="form-label">Heure de fermeture</label>
+                            <select class="form-select fermeture-select" name="horaires[${horaireCount}][fermeture]" required>
+                                <option value="">Choisir une heure</option>
+                                ${heureOptions}
+                            </select>
+                        </div>
+                        <div class="col-md-3 text-center text-md-end">
+                            <button type="button" class="remove-horaire-btn" onclick="removeHoraireRow('${rowId}')">
+                                <i class="fas fa-times"></i>
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            `;
+            
+            $('#horaires-container').append(newRow);
+        }
+        
+        // Fonction pour supprimer une ligne d'horaire
+        window.removeHoraireRow = function(rowId) {
+            $(`#${rowId}`).remove();
+        };
+        
+        // Ajouter la première ligne par défaut
+        addHoraireRow();
+        
+        // Gestion du clic sur le bouton "Ajouter un horaire"
+        $('#add-horaire-btn').click(function() {
+            addHoraireRow();
+        });
+        
+        // Avant la soumission du formulaire, préparer les données
+        $('#registration-form').on('submit', function() {
+            const horaires = [];
+            
+            $('.horaire-row').each(function() {
+                const jour = $(this).find('.jour-select').val();
+                const ouverture = $(this).find('.ouverture-select').val();
+                const fermeture = $(this).find('.fermeture-select').val();
+                
+                if (jour && ouverture && fermeture) {
+                    horaires.push({
+                        jour: jour,
+                        ouverture: ouverture,
+                        fermeture: fermeture
+                    });
+                }
+            });
+            
+            $('#horaires-data').val(JSON.stringify(horaires));
+        });
+    });
+</script>
+
+			{% endblock %}

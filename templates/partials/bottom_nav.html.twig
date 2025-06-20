@@ -1,0 +1,34 @@
+<!-- Bottom Navigation Bar -->
+        <nav class="bottom-nav">
+            <a href="{{ path('app_home') }}" class="nav-item {% if app.request.get('_route') == 'app_home' %}active{% endif %}">
+                <div class="nav-item-wrapper">
+                    <i class="fas fa-home nav-icon"></i>
+                    <span>Accueil</span>
+                </div>
+            </a>
+            
+            <a href="#" class="nav-item {% if app.request.get('_route') == 'app_favorites' %}active{% endif %}">
+                <div class="nav-item-wrapper">
+                    <i class="fas fa-heart nav-icon"></i>
+                    <span>Favoris</span>
+                    {% if app.user and app.user.favorites|length > 0 %}
+                        <span class="nav-badge">{{ app.user.favorites|length }}</span>
+                    {% endif %}
+                </div>
+            </a>
+            
+            <a href="{{ path("app_categories") }}" class="nav-item {{ app.current_route starts with 'app_category' or app.current_route == 'app_categories' ? 'active' }} ">
+                <div class="nav-item-wrapper">
+                    <i class="fas fa-th-large nav-icon"></i>
+                    <span>Catégories</span>
+                </div>
+            </a>
+            
+            <a href="{{ path("app_profile") }}" class="nav-item {% if app.request.get('_route') == 'app_profile' %}active{% endif %}">
+                <div class="nav-item-wrapper">
+                    <i class="fas fa-user nav-icon"></i>
+                    <span>Profil</span>
+                </div>
+            </a>
+            
+        </nav>

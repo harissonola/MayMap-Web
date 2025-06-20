@@ -1,0 +1,405 @@
+{# templates/profile/client.html.twig #}
+{% extends 'base.html.twig' %}
+
+{% block title %}Mon Profil Client
+{% endblock %}
+
+{% block stylesheets %}
+	{{ parent() }}
+	<style>
+		.profile-header {
+			background: linear-gradient(135deg, #6a11cb 0%, #2575fc 100%);
+			color: white;
+			border-radius: 10px;
+			padding: 2rem;
+			margin-bottom: 2rem;
+			box-shadow: 0 4px 20px rgba(0, 0, 0, 0.1);
+		}
+		.avatar-container {
+			position: relative;
+			display: inline-block;
+		}
+		.avatar-edit {
+			position: absolute;
+			bottom: 10px;
+			right: 10px;
+			background: rgba(255, 255, 255, 0.8);
+			width: 40px;
+			height: 40px;
+			border-radius: 50%;
+			display: flex;
+			align-items: center;
+			justify-content: center;
+			cursor: pointer;
+			transition: all 0.3s;
+		}
+		.avatar-edit:hover {
+			background: white;
+		}
+		.stats-card {
+			border-radius: 10px;
+			transition: transform 0.3s;
+			border: none;
+			box-shadow: 0 2px 15px rgba(0, 0, 0, 0.05);
+		}
+		.stats-card:hover {
+			transform: translateY(-5px);
+		}
+		.badge-verified {
+			background-color: #28a745;
+			font-size: 0.8rem;
+		}
+		.favorite-card {
+			transition: all 0.3s;
+			border-radius: 10px;
+			overflow: hidden;
+			border: none;
+			box-shadow: 0 2px 10px rgba(0, 0, 0, 0.05);
+		}
+		.favorite-card:hover {
+			transform: translateY(-3px);
+			box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1);
+		}
+		.rating-stars {
+			color: #ffc107;
+		}
+		.section-title {
+			position: relative;
+			padding-bottom: 10px;
+			margin-bottom: 20px;
+		}
+		.section-title:after {
+			content: '';
+			position: absolute;
+			left: 0;
+			bottom: 0;
+			width: 50px;
+			height: 3px;
+			background: linear-gradient(to right, #6a11cb, #2575fc);
+		}
+		.edit-profile-btn {
+			background: linear-gradient(to right, #6a11cb, #2575fc);
+			border: none;
+			border-radius: 30px;
+			padding: 8px 20px;
+			font-weight: 500;
+		}
+	</style>
+{% endblock %}
+
+{% block body %}
+	<div
+		class="container mt-4">
+		{# En-tête du profil #}
+		<div class="profile-header">
+			<div class="row align-items-center">
+				<div class="col-md-2 text-center">
+					<div class="avatar-container">
+						<img src="{{ user.avatar ? '/users/' ~ user.avatar : asset('users/default.jpg') }}" class="img-fluid rounded-circle mb-3" alt="Avatar {{ user.username }}" style="width: 150px; height: 150px; object-fit: cover;">
+						<div class="avatar-edit" data-bs-toggle="modal" data-bs-target="#avatarModal">
+							<i class="fas fa-camera"></i>
+						</div>
+					</div>
+				</div>
+				<div class="col-md-6">
+					<h2>{{ user.fname }}
+						{{ user.lname }}</h2>
+					<p class="mb-1">@{{ user.username }}</p>
+					<p class="mb-2">
+						<i class="fas fa-envelope me-2"></i>
+						{{ user.email }}</p>
+					{% if user.isVerified %}
+						<span class="badge badge-verified p-2">
+							<i class="fas fa-check-circle me-1"></i>
+							Compte vérifié</span>
+					{% else %}
+						<span class="badge bg-secondary p-2">
+							<i class="fas fa-exclamation-circle me-1"></i>
+							Compte non vérifié</span>
+					{% endif %}
+				</div>
+				<div class="col-md-4 text-end">
+					<a href="#" class="btn btn-light edit-profile-btn">
+						<i class="fas fa-user-edit me-2"></i>Modifier le profil
+					</a>
+				</div>
+			</div>
+		</div>
+
+		{# Statistiques #}
+		<div class="row mb-4">
+			<div class="col-md-4">
+				<div class="stats-card card h-100">
+					<div class="card-body text-center">
+						<h3 class="mb-0">{{ user.favorites|length }}</h3>
+						<p class="text-muted mb-0">Favoris</p>
+						<i class="fas fa-heart fa-2x mt-3" style="color: #e83e8c;"></i>
+					</div>
+				</div>
+			</div>
+			<div class="col-md-4">
+				<div class="stats-card card h-100">
+					<div class="card-body text-center">
+						<h3 class="mb-0">{{ user.ratings|length }}</h3>
+						<p class="text-muted mb-0">Avis postés</p>
+						<i class="fas fa-star fa-2x mt-3" style="color: #ffc107;"></i>
+					</div>
+				</div>
+			</div>
+			<div class="col-md-4">
+				<div class="stats-card card h-100">
+					<div class="card-body text-center">
+						<h3 class="mb-0">{{ user.ratings|length > 0 ? (user.ratings|reduce((sum, rating) => sum + rating.note) / user.ratings|length)|number_format(1) : '0' }}</h3>
+						<p class="text-muted mb-0">Note moyenne</p>
+						<i class="fas fa-chart-line fa-2x mt-3" style="color: #20c997;"></i>
+					</div>
+				</div>
+			</div>
+		</div>
+
+		{# Contenu principal #}
+		<div class="row">
+			<div
+				class="col-md-8">
+				{# Favoris #}
+				<div class="card mb-4">
+					<div class="card-body">
+						<h4 class="card-title section-title">Mes établissements favoris</h4>
+						{% if user.favorites|length > 0 %}
+							<div class="row">
+								{% for favorite in user.favorites %}
+									<div class="col-md-6 mb-3">
+										<div class="favorite-card card h-100">
+											<img src="/establishments/{{ favorite.images|length > 0 ? favorite.images[0].imageUrl }}" class="card-img-top" alt="{{ favorite.name }}" style="height: 120px; object-fit: cover;">
+											<div class="card-body">
+												<h5 class="card-title">{{ favorite.name }}</h5>
+												<p class="text-muted small mb-2">
+													<i class="fas fa-{{ iconForType(favorite.type.name) }} me-1"></i>
+													{{ favorite.type.name }}
+												</p>
+												<div class="d-flex justify-content-between align-items-center">
+													<div class="rating-stars small">
+														{% set avgRating = favorite.ratings|length > 0 ? (favorite.ratings|reduce((sum, rating) => sum + rating.note) / favorite.ratings|length)|round : 0 %}
+														{% for i in 1..5 %}
+															{% if i <= avgRating %}
+																<i class="fas fa-star"></i>
+															{% else %}
+																<i class="far fa-star"></i>
+															{% endif %}
+														{% endfor %}
+														<span class="ms-1">({{ favorite.ratings|length }})</span>
+													</div>
+													<a href="{{ path('app_establishment_show', {slug: favorite.slug}) }}" class="btn btn-sm btn-outline-primary">
+														Voir
+														<i class="fas fa-arrow-right ms-1"></i>
+													</a>
+												</div>
+											</div>
+										</div>
+									</div>
+								{% endfor %}
+							</div>
+						{% else %}
+							<div class="text-center py-4">
+								<i class="fas fa-heart-broken fa-3x mb-3" style="color: #e83e8c; opacity: 0.5;"></i>
+								<h5>Vous n'avez aucun favori</h5>
+								<p class="text-muted">Commencez à explorer les établissements et ajoutez-les à vos favoris !</p>
+								<a href="{{ path('app_categories') }}" class="btn btn-primary">
+									<i class="fas fa-search me-1"></i>
+									Explorer
+								</a>
+							</div>
+						{% endif %}
+					</div>
+				</div>
+
+				{# Avis #}
+				<div class="card mb-4">
+					<div class="card-body">
+						<h4 class="card-title section-title">Mes avis récents</h4>
+						{% if user.ratings|length > 0 %}
+							{% for rating in user.ratings|slice(0, 5) %}
+								<div class="mb-3 p-3" style="border-radius: 8px; background-color: #f8f9fa;">
+									<div class="d-flex justify-content-between align-items-center mb-2">
+										<h6 class="mb-0">
+											<a href="{{ path('app_establishment_show', {slug: rating.establishment.slug}) }}" class="text-decoration-none">
+												{{ rating.establishment.name }}
+											</a>
+										</h6>
+										<div class="rating-stars">
+											{% for i in 1..5 %}
+												{% if i <= rating.note %}
+													<i class="fas fa-star"></i>
+												{% else %}
+													<i class="far fa-star"></i>
+												{% endif %}
+											{% endfor %}
+										</div>
+									</div>
+									<p class="mb-2">{{ rating.comment }}</p>
+									<small class="text-muted">
+										<i class="far fa-clock me-1"></i>
+										{{ rating.createdAt|date('d/m/Y H:i') }}
+									</small>
+								</div>
+								{% if not loop.last %}<hr class="my-3">
+								{% endif %}
+							{% endfor %}
+							{% if user.ratings|length > 5 %}
+								<div class="text-center mt-3">
+									<a href="{{ path('app_profile_ratings') }}" class="btn btn-outline-primary">
+										Voir tous mes avis ({{ user.ratings|length }})
+									</a>
+								</div>
+							{% endif %}
+						{% else %}
+							<div class="text-center py-4">
+								<i class="fas fa-comment-slash fa-3x mb-3" style="color: #6c757d; opacity: 0.5;"></i>
+								<h5>Vous n'avez posté aucun avis</h5>
+								<p class="text-muted">Partagez votre expérience en laissant un avis sur les établissements que vous avez visités.</p>
+							</div>
+						{% endif %}
+					</div>
+				</div>
+			</div>
+
+			{# Sidebar #}
+			<div
+				class="col-md-4">
+				{# Informations personnelles #}
+				<div class="card mb-4">
+					<div class="card-body">
+						<h4 class="card-title section-title">Informations personnelles</h4>
+						<ul class="list-group list-group-flush">
+							<li class="list-group-item d-flex justify-content-between align-items-center">
+								<span>
+									<i class="fas fa-user me-2"></i>
+									Nom d'utilisateur</span>
+								<span class="fw-bold">@{{ user.username }}</span>
+							</li>
+							<li class="list-group-item d-flex justify-content-between align-items-center">
+								<span>
+									<i class="fas fa-envelope me-2"></i>
+									Email</span>
+								<span class="fw-bold">{{ user.email }}</span>
+							</li>
+							<li class="list-group-item d-flex justify-content-between align-items-center">
+								<span>
+									<i class="fas fa-calendar-alt me-2"></i>
+									Membre depuis</span>
+								<span class="fw-bold">{{ user.createdAt|date('d/m/Y') }}</span>
+							</li>
+						</ul>
+					</div>
+				</div>
+
+				{# Dernière activité (simplifiée) #}
+				<div class="card mb-4">
+					<div class="card-body">
+						<h4 class="card-title section-title">Dernière activité</h4>
+						{% if user.ratings|length > 0 %}
+							{% set lastRating = user.ratings|last %}
+							<div class="d-flex align-items-start mb-3">
+								<div class="me-3">
+									<i class="fas fa-star fa-2x" style="color: #ffc107;"></i>
+								</div>
+								<div>
+									<h6 class="mb-1">Avis posté</h6>
+									<p class="small text-muted mb-1">{{ lastRating.establishment.name }}</p>
+									<small class="text-muted">{{ lastRating.createdAt|date('d/m/Y H:i') }}</small>
+								</div>
+							</div>
+						{% else %}
+							<p class="text-muted">Aucune activité récente</p>
+						{% endif %}
+					</div>
+				</div>
+
+				{# Préférences #}
+				<div class="card">
+					<div class="card-body">
+						<h4 class="card-title section-title">Mes préférences</h4>
+						<div class="mb-3">
+							<h6 class="small">Types préférés</h6>
+							{% if user.favorites|length > 0 %}
+								<div class="d-flex flex-wrap gap-2">
+									{% for type in user.favorites|slice(0, 3)|map(favorite => favorite.type) %}
+										<span class="badge bg-primary">{{ type.name }}</span>
+									{% endfor %}
+								</div>
+							{% else %}
+								<p class="small text-muted">Aucune préférence définie</p>
+								<a href="{{ path('app_categories') }}" class="btn btn-sm btn-outline-primary">Ajouter des préférences</a>
+							{% endif %}
+						</div>
+						<div>
+							<h6 class="small">Notifications</h6>
+							<div class="form-check form-switch">
+								<input class="form-check-input" type="checkbox" id="notifPromo" checked>
+								<label class="form-check-label small" for="notifPromo">Promotions</label>
+							</div>
+							<div class="form-check form-switch">
+								<input class="form-check-input" type="checkbox" id="notifNews" checked>
+								<label class="form-check-label small" for="notifNews">Nouveautés</label>
+							</div>
+						</div>
+					</div>
+				</div>
+			</div>
+		</div>
+	</div>
+
+	<!-- Modal pour changer l'avatar -->
+<div class="modal fade" id="avatarModal" tabindex="-1" aria-labelledby="avatarModalLabel" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="avatarModalLabel">Changer la photo de profil</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                {{ form_start(avatarForm, {'attr': {'class': 'd-flex flex-column align-items-center', 'enctype': 'multipart/form-data'}}) }}
+                <div class="mb-3 text-center">
+                    <img id="avatarPreview" src="{{ user.avatar ? '/users/' ~ user.avatar : asset('users/default.jpg') }}" 
+                         class="img-fluid rounded-circle mb-3" 
+                         style="width: 150px; height: 150px; object-fit: cover;">
+                    {{ form_widget(avatarForm.avatar, {'attr': {'class': 'form-control', 'onchange': 'previewAvatar(this)'}}) }}
+                </div>
+                {{ form_widget(avatarForm.submit, {'attr': {'class': 'btn btn-primary'}}) }}
+                {{ form_end(avatarForm) }}
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block javascripts %}
+    {{ parent() }}
+    <script>
+        function previewAvatar(input) {
+            if (input.files && input.files[0]) {
+                const reader = new FileReader();
+                reader.onload = function (e) {
+                    document.getElementById('avatarPreview').src = e.target.result;
+                }
+                reader.readAsDataURL(input.files[0]);
+            }
+        }
+
+        // Optionnel: Afficher les messages flash dans la modale
+        document.addEventListener('turbo:load', function() {
+            const avatarModal = new bootstrap.Modal(document.getElementById('avatarModal'));
+            
+            {% for message in app.flashes('success') %}
+                avatarModal.show();
+                setTimeout(() => {
+                    avatarModal.hide();
+                }, 3000);
+            {% endfor %}
+            
+            {% for message in app.flashes('error') %}
+                avatarModal.show();
+            {% endfor %}
+        });
+    </script>
+{% endblock %}

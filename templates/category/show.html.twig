@@ -1,0 +1,565 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}{{category.name}} | Catégories{% endblock %}
+
+{% block stylesheets %}
+    {{ parent() }}
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;600;700&family=Montserrat:wght@700&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --primary: #6e8efb;
+            --secondary: #a777e3;
+            --accent: #ff4e50;
+            --dark: #2c3e50;
+            --light: #f8f9fa;
+        }
+        
+        body {
+            font-family: 'Poppins', sans-serif;
+            background: var(--light);
+            overflow-x: hidden;
+        }
+        
+        /* Hero Section */
+        .hero-section {
+            height: 550px;
+            border-radius: 20px;
+            overflow: hidden;
+            position: relative;
+            margin-bottom: 5rem;
+            box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.25);
+            background: linear-gradient(135deg, var(--primary) 0%, var(--secondary) 100%);
+            isolation: isolate;
+        }
+        
+        .hero-section::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: url('data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSIxMDAlIiBoZWlnaHQ9IjEwMCUiPjxkZWZzPjxwYXR0ZXJuIGlkPSJwYXR0ZXJuIiB3aWR0aD0iNDAiIGhlaWdodD0iNDAiIHBhdHRlcm5Vbml0cz0idXNlclNwYWNlT25Vc2UiIHBhdHRlcm5UcmFuc2Zvcm09InJvdGF0ZSg0NSkiPjxyZWN0IHdpZHRoPSIyMCIgaGVpZ2h0PSIyMCIgZmlsbD0icmdiYSgyNTUsMjU1LDI1NSwwLjAzKSIvPjwvcGF0dGVybj48L2RlZnM+PHJlY3Qgd2lkdGg9IjEwMCUiIGhlaWdodD0iMTAwJSIgZmlsbD0idXJsKCNwYXR0ZXJuKSIvPjwvc3ZnPg==');
+            z-index: -1;
+        }
+        
+        .particles {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            z-index: -1;
+        }
+        
+        .hero-content {
+            position: relative;
+            z-index: 2;
+        }
+        
+        .hero-title {
+            font-family: 'Montserrat', sans-serif;
+            font-size: 4rem;
+            font-weight: 700;
+            color: white;
+            text-shadow: 0 2px 10px rgba(0,0,0,0.2);
+            margin-bottom: 1.5rem;
+            animation: fadeInUp 0.8s ease;
+        }
+        
+        .hero-subtitle {
+            font-size: 1.3rem;
+            color: rgba(255,255,255,0.9);
+            max-width: 600px;
+            margin-bottom: 2rem;
+            animation: fadeInUp 0.8s ease 0.2s both;
+        }
+        
+        .search-form {
+            max-width: 600px;
+            margin-bottom: 2rem;
+            animation: fadeInUp 0.8s ease 0.4s both;
+        }
+        
+        .search-input {
+            border: none;
+            border-radius: 50px !important;
+            padding: 1rem 1.5rem;
+            font-size: 1rem;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.1);
+            transition: all 0.3s ease;
+        }
+        
+        .search-input:focus {
+            box-shadow: 0 5px 20px rgba(0,0,0,0.2);
+        }
+        
+        .search-button {
+            border-radius: 50px !important;
+            padding: 0.75rem 1.5rem;
+            font-weight: 600;
+            background: linear-gradient(to right, #f9d423, var(--accent));
+            border: none;
+            box-shadow: 0 4px 15px rgba(249, 212, 35, 0.3);
+            transition: all 0.3s ease;
+        }
+        
+        .search-button:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 25px rgba(249, 212, 35, 0.4);
+            background: linear-gradient(to right, #ffdf4d, #ff6b6b);
+        }
+        
+        .category-icon {
+            font-size: 6rem !important;
+            color: white;
+            background: rgba(255,255,255,0.2);
+            border: 5px solid rgba(255,255,255,0.3);
+            border-radius: 30px;
+            padding: 2rem;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.2);
+            backdrop-filter: blur(5px);
+            transition: all 0.4s ease;
+            animation: float 6s ease-in-out infinite;
+        }
+        
+        .category-icon:hover {
+            transform: scale(1.1) rotate(10deg);
+            background: rgba(255,255,255,0.3);
+        }
+        
+        /* Main Content */
+        .section-heading {
+            font-family: 'Montserrat', sans-serif;
+            font-size: 3rem;
+            font-weight: 700;
+            color: var(--dark);
+            text-align: center;
+            margin-bottom: 4rem;
+            position: relative;
+            animation: fadeIn 0.8s ease 0.6s both;
+        }
+        
+        .section-heading::after {
+            content: '';
+            display: block;
+            width: 100px;
+            height: 5px;
+            background: linear-gradient(to right, var(--primary), var(--secondary));
+            margin: 1.5rem auto 0;
+            border-radius: 5px;
+            animation: scaleIn 0.8s ease 0.8s both;
+        }
+        
+        /* Cards */
+        .type-card {
+            border: none;
+            border-radius: 20px;
+            overflow: hidden;
+            box-shadow: 0 15px 40px rgba(0,0,0,0.08);
+            transition: all 0.6s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+            margin-bottom: 2rem;
+            background: white;
+            position: relative;
+            z-index: 1;
+            transform-style: preserve-3d;
+            animation: fadeInUp 0.8s ease calc(0.2s * var(--i)) both;
+        }
+        
+        .type-card::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(135deg, rgba(110,142,251,0.1) 0%, rgba(167,119,227,0.1) 100%);
+            z-index: -1;
+            opacity: 0;
+            transition: all 0.6s ease;
+        }
+        
+        .type-card:hover {
+            transform: translateY(-15px) scale(1.03) rotateY(5deg) rotateX(5deg);
+            box-shadow: 0 30px 60px rgba(110, 142, 251, 0.25);
+        }
+        
+        .type-card:hover::before {
+            opacity: 1;
+        }
+        
+        .card-icon-container {
+            position: relative;
+            width: 100px;
+            height: 100px;
+            margin: 2rem auto;
+            perspective: 1000px;
+        }
+        
+        .card-icon {
+            font-size: 3.5rem;
+            color: white;
+            background: linear-gradient(135deg, var(--primary), var(--secondary));
+            width: 100px;
+            height: 100px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            border-radius: 50%;
+            margin: 0 auto;
+            box-shadow: 0 10px 30px rgba(110, 142, 251, 0.3);
+            transition: all 0.6s ease;
+            transform-style: preserve-3d;
+        }
+        
+        .type-card:hover .card-icon {
+            transform: rotateY(180deg) scale(1.1);
+            background: linear-gradient(135deg, var(--accent), #f9d423);
+        }
+        
+        .card-title {
+            font-weight: 700;
+            color: var(--dark);
+            text-align: center;
+            margin-bottom: 1rem;
+            transition: all 0.3s ease;
+            position: relative;
+            padding-bottom: 0.5rem;
+        }
+        
+        .card-title::after {
+            content: '';
+            position: absolute;
+            bottom: 0;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 40px;
+            height: 3px;
+            background: linear-gradient(to right, var(--primary), var(--secondary));
+            transition: all 0.3s ease;
+        }
+        
+        .type-card:hover .card-title {
+            color: var(--primary);
+        }
+        
+        .type-card:hover .card-title::after {
+            width: 80px;
+            background: linear-gradient(to right, var(--accent), #f9d423);
+        }
+        
+        .card-text {
+            color: #7f8c8d;
+            text-align: center;
+            padding: 0 1.5rem 2rem;
+            transition: all 0.3s ease;
+        }
+        
+        .type-card:hover .card-text {
+            color: var(--dark);
+        }
+        
+        /* Animations */
+        @keyframes fadeIn {
+            from { opacity: 0; }
+            to { opacity: 1; }
+        }
+        
+        @keyframes fadeInUp {
+            from { 
+                opacity: 0;
+                transform: translateY(20px);
+            }
+            to { 
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+        
+        @keyframes scaleIn {
+            from { 
+                transform: scaleX(0);
+            }
+            to { 
+                transform: scaleX(1);
+            }
+        }
+        
+        @keyframes float {
+            0% { transform: translateY(0px); }
+            50% { transform: translateY(-15px); }
+            100% { transform: translateY(0px); }
+        }
+        
+        /* Particles */
+        .particle {
+            position: absolute;
+            background: rgba(255,255,255,0.6);
+            border-radius: 50%;
+            pointer-events: none;
+        }
+        
+        @media (max-width: 768px) {
+            .hero-title {
+                font-size: 2.5rem;
+            }
+            
+            .hero-section {
+                height: auto;
+                padding: 3rem 0;
+            }
+            
+            .section-heading {
+                font-size: 2rem;
+            }
+            
+            .type-card {
+                margin-bottom: 1.5rem;
+            }
+        }
+
+		/* Search Results */
+.search-results {
+    background: white;
+    border-radius: 20px;
+    padding: 2rem;
+    margin: 2rem 0;
+    box-shadow: 0 15px 40px rgba(0,0,0,0.08);
+    animation: fadeInUp 0.8s ease;
+}
+
+.search-results h4 {
+    font-family: 'Montserrat', sans-serif;
+    font-weight: 700;
+    color: var(--dark);
+    margin-bottom: 1.5rem;
+    position: relative;
+}
+
+.search-results h4::after {
+    content: '';
+    display: block;
+    width: 60px;
+    height: 4px;
+    background: linear-gradient(to right, var(--primary), var(--secondary));
+    margin: 1rem auto 0;
+    border-radius: 5px;
+}
+
+.search-results .alert {
+    border-radius: 15px;
+    border: none;
+    box-shadow: 0 5px 15px rgba(0,0,0,0.05);
+    font-weight: 500;
+}
+
+.search-results .alert-info {
+    background: linear-gradient(135deg, rgba(110,142,251,0.1) 0%, rgba(167,119,227,0.1) 100%);
+    color: var(--dark);
+    border-left: 4px solid var(--primary);
+}
+
+.search-results .alert-warning {
+    background: linear-gradient(135deg, rgba(255,78,80,0.1) 0%, rgba(249,212,35,0.1) 100%);
+    color: var(--dark);
+    border-left: 4px solid var(--accent);
+}
+
+/* No results message */
+.no-results {
+    text-align: center;
+    padding: 3rem;
+    background: rgba(255,255,255,0.7);
+    border-radius: 20px;
+    box-shadow: 0 10px 30px rgba(0,0,0,0.05);
+}
+
+.no-results i {
+    font-size: 3rem;
+    color: var(--accent);
+    margin-bottom: 1rem;
+    display: inline-block;
+}
+
+.no-results h5 {
+    font-family: 'Montserrat', sans-serif;
+    color: var(--dark);
+    margin-bottom: 1rem;
+}
+
+.no-results p {
+    color: #7f8c8d;
+    max-width: 500px;
+    margin: 0 auto;
+}
+    </style>
+{% endblock %}
+
+{% block javascripts %}
+    {{ parent() }}
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            // Create particles
+            const heroSection = document.querySelector('.hero-section');
+            const particleCount = 30;
+            
+            for (let i = 0; i < particleCount; i++) {
+                const particle = document.createElement('div');
+                particle.classList.add('particle');
+                
+                // Random properties
+                const size = Math.random() * 10 + 5;
+                const posX = Math.random() * 100;
+                const posY = Math.random() * 100;
+                const opacity = Math.random() * 0.4 + 0.1;
+                const duration = Math.random() * 10 + 10;
+                const delay = Math.random() * 5;
+                
+                particle.style.width = `${size}px`;
+                particle.style.height = `${size}px`;
+                particle.style.left = `${posX}%`;
+                particle.style.top = `${posY}%`;
+                particle.style.opacity = opacity;
+                particle.style.animation = `float ${duration}s ease-in-out ${delay}s infinite`;
+                
+                heroSection.appendChild(particle);
+            }
+            
+            // Card hover effect enhancement
+            const cards = document.querySelectorAll('.type-card');
+            cards.forEach((card, index) => {
+                card.style.setProperty('--i', index);
+                
+                card.addEventListener('mousemove', (e) => {
+                    const x = e.clientX - card.getBoundingClientRect().left;
+                    const y = e.clientY - card.getBoundingClientRect().top;
+                    
+                    const centerX = card.offsetWidth / 2;
+                    const centerY = card.offsetHeight / 2;
+                    
+                    const angleX = (y - centerY) / 20;
+                    const angleY = (centerX - x) / 20;
+                    
+                    card.style.transform = `translateY(-15px) scale(1.03) rotateX(${angleX}deg) rotateY(${angleY}deg)`;
+                });
+                
+                card.addEventListener('mouseleave', () => {
+                    card.style.transform = 'translateY(-15px) scale(1.03) rotateX(0) rotateY(0)';
+                });
+            });
+        });
+    </script>
+{% endblock %}
+
+{% block body %}
+    <!-- Hero Section -->
+    <section class="hero-section mb-5">
+        <div class="container h-100">
+            <div class="particles"></div>
+            <div class="row h-100 align-items-center">
+                <div class="col-lg-6 hero-content">
+                    <form class="search-form" method="get" action="{{ path('app_category_show', {slug: category.slug}) }}">
+                        <div class="input-group">
+                            <span class="input-group-text bg-white border-0">
+                                <i class="bx bx-search text-primary"></i>
+                            </span>
+                            <input 
+                                type="search" 
+                                name="q"
+                                class="form-control search-input border-0" 
+                                placeholder="Rechercher par ville, quartier, pays..." 
+                                aria-label="Rechercher..."
+                                value="{{ searchQuery ?? '' }}"
+                            >
+                            <button type="submit" class="btn search-button text-white">
+                                <i class="fas fa-search me-2"></i> Rechercher
+                            </button>
+                        </div>
+                    </form>
+
+                    {% if searchQuery is not empty %}
+                        <div class="search-results mt-4">
+                            {% if hasSearchResults %}
+                                <div class="alert alert-info">
+                                    <i class="fas fa-map-marker-alt me-2"></i> 
+                                    Nous avons trouvé {{ types|length }} type(s) d'établissement à "{{ searchQuery }}"
+                                </div>
+                            {% else %}
+                                <div class="alert alert-warning">
+                                    <i class="fas fa-exclamation-circle me-2"></i>
+                                    Aucun résultat trouvé pour "{{ searchQuery }}". Essayez avec un autre nom de lieu.
+                                </div>
+                            {% endif %}
+                        </div>
+                    {% endif %}
+
+                    <h1 class="hero-title">{{category.name}}</h1>
+                    <p class="hero-subtitle">
+                        {{ category.description ?? "Découvrez notre sélection exclusive d'entreprises dans cette catégorie." }}
+                    </p>
+                </div>
+                <div class="col-lg-6 text-center">
+                    <i class="fas fa-{{ iconForCategory(category.name) }} category-icon"></i>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Main Section -->
+    <main class="container mb-5 pb-5">
+        {% if searchQuery is not empty %}
+            <h3 class="section-heading">Types disponibles à {{ searchQuery }}</h3>
+        {% else %}
+            <h3 class="section-heading">Types d'Entreprise</h3>
+        {% endif %}
+        
+        <div class="row">
+            {% if types|length > 0 %}
+                {% for type in types %}
+                    <div class="col-lg-4 col-md-6">
+                        <div class="type-card card h-100">
+                            <div class="card-icon-container">
+                                <i class="fas fa-{{ iconForType(type.name) }} card-icon"></i>
+                            </div>
+                            <div class="card-body">
+                                <h4 class="card-title">{{type.name}}</h4>
+                                <p class="card-text">
+                                    {{ type.description ?? "Explorez notre sélection d'entreprises de ce type." }}
+                                </p>
+                                {% if searchQuery is not empty %}
+                                    <div class="text-center mt-3">
+                                        <a href="{{ path('app_establishments_by_type', {slug: category.slug, typeSlug: type.slug, location: searchQuery}) }}" 
+                                           class="btn btn-sm btn-primary rounded-pill">
+                                            <i class="fas fa-store me-1"></i>
+                                            Voir les {{ type.establishments|length }} établissements
+                                        </a>
+                                    </div>
+                                {% endif %}
+                            </div>
+                        </div>
+                    </div>
+                {% endfor %}
+            {% else %}
+                <div class="col-12">
+                    <div class="no-results text-center py-5">
+                        <i class="fas fa-map-marked-alt fa-3x mb-3 text-muted"></i>
+                        <h4 class="text-muted">
+                            {% if searchQuery is not empty %}
+                                Aucun type d'établissement trouvé à {{ searchQuery }}
+                            {% else %}
+                                Aucun type d'établissement disponible
+                            {% endif %}
+                        </h4>
+                        <p class="text-muted">
+                            {% if searchQuery is not empty %}
+                                Essayez avec un autre nom de lieu ou consultez tous les types disponibles.
+                            {% else %}
+                                Cette catégorie ne contient actuellement aucun type d'établissement.
+                            {% endif %}
+                        </p>
+                    </div>
+                </div>
+            {% endif %}
+        </div>
+    </main>
+{% endblock %}

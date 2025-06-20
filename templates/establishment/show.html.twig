@@ -1,0 +1,1399 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}
+	{{ establishment.name }}
+{% endblock %}
+
+{% block stylesheets %}
+	{{ parent() }}
+	<link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"/>
+	<style>
+		/* Custom styles for establishment page */
+		.hero-section {
+			background: linear-gradient(rgba(0, 0, 0, 0.6), rgba(0, 0, 0, 0.6)), {% if establishment.images|length > 0 %}
+				url('{{ establishment.images.first.imageUrl }}'){% else %}
+				var(--bs-dark){% endif %};
+			background-size: cover;
+			background-position: center;
+			color: white;
+			padding: 5rem 0;
+			margin-bottom: 3rem;
+		}
+
+		.establishment-logo {
+			width: 100px;
+			height: 100px;
+			object-fit: cover;
+			border-radius: 50%;
+			border: 3px solid white;
+			box-shadow: 0 0.5rem 1rem rgba(0, 0, 0, 0.15);
+		}
+
+		.gallery-image {
+			height: 200px;
+			object-fit: cover;
+			cursor: pointer;
+			transition: transform 0.3s;
+		}
+
+		.gallery-image:hover {
+			transform: scale(1.03);
+		}
+
+		.post-card {
+			transition: transform 0.2s;
+		}
+
+		.post-card:hover {
+			transform: translateY(-5px);
+		}
+
+		.rating-stars {
+			color: #ffc107;
+			font-size: 1.2rem;
+		}
+
+		.verified-badge {
+			background-color: #198754;
+			color: white;
+			padding: 0.25rem 0.5rem;
+			border-radius: 0.25rem;
+			font-size: 0.8rem;
+		}
+
+		.premium-badge {
+			background-color: #6f42c1;
+			color: white;
+			padding: 0.25rem 0.5rem;
+			border-radius: 0.25rem;
+			font-size: 0.8rem;
+		}
+
+		.tab-content {
+			padding: 2rem 0;
+		}
+
+		.info-icon {
+			width: 24px;
+			text-align: center;
+			color: var(--bs-primary);
+			margin-right: 0.5rem;
+		}
+
+		.list-group-item {
+			border-left: none;
+			border-right: none;
+		}
+
+		.list-group-item:first-child {
+			border-top: none;
+		}
+
+		.list-group-item:last-child {
+			border-bottom: none;
+		}
+
+		/* Dans votre bloc stylesheets */
+		.toggle-favorite .fas.fa-heart {
+			color: #dc3545;
+		}
+
+		.rating-stars i {
+			cursor: pointer;
+			font-size: 1.5rem;
+			margin-right: 0.2rem;
+		}
+
+		.rating-stars i.fas {
+			color: #ffc107;
+		}
+
+		#rating-form .was-validated .form-control:invalid,
+		#rating-form .was-validated .form-control:invalid:focus {
+			border-color: #dc3545;
+			box-shadow: 0 0 0 0.25rem rgba(220, 53, 69, 0.25);
+		}
+
+		#prevImage:disabled,
+		#nextImage:disabled {
+			opacity: 0.5;
+			cursor: not-allowed;
+		}
+	</style>
+{% endblock %}
+
+{% block body %}
+	<!-- Hero Section -->
+	<section class="hero-section">
+		<div class="container">
+			<div class="row align-items-center">
+				<div class="col-md-2 text-center mb-3 mb-md-0">
+					{% if establishment.images|filter(img => img.isLogo)|length > 0 %}
+						<img src="/establishments/{{ establishment.images|filter(img => img.isLogo)|first.imageUrl }}" class="establishment-logo" alt="{{ establishment.name }} logo">
+					{% endif %}
+				</div>
+				<div class="col-md-8">
+					<h1 class="display-4 fw-bold">{{ establishment.name }}</h1>
+					<p class="lead mb-2">
+						{{ establishment.type.name }}
+						-
+						{{ establishment.address }}
+					</p>
+					<div class="d-flex gap-2 mb-3">
+						{% if establishment.isVerified %}
+							<span class="verified-badge">
+								<i class="fas fa-check-circle me-1"></i>
+								Vérifié
+							</span>
+						{% endif %}
+						{% if establishment.isPremium %}
+							<span class="premium-badge">
+								<i class="fas fa-crown me-1"></i>
+								Premium
+							</span>
+						{% endif %}
+					</div>
+					<div class="d-flex flex-wrap gap-2">
+						<a href="{{ path('app_category_show', {slug: establishment.type.category.slug}) }}" class="btn btn-light rounded-pill">
+							<i class="fas fa-arrow-left me-2"></i>
+							Retour à la catégorie
+						</a>
+						<button class="btn btn-primary rounded-pill toggle-favorite" data-establishment-id="{{ establishment.id }}" {% if app.user and establishment in app.user.favorites %} data-is-favorite="true" {% endif %}>
+							<i class="fas fa-heart me-2"></i>
+							<span class="favorite-text">
+								{% if app.user and establishment in app.user.favorites %}
+									Retirer des favoris
+								{% else %}
+									Ajouter aux favoris
+								{% endif %}
+							</span>
+						</button>
+						<button class="btn btn-outline-light rounded-pill">
+							<i class="fas fa-share-alt me-2"></i>
+							Partager
+						</button>
+					</div>
+				</div>
+				<div class="col-md-2 text-center">
+					{% if establishment.ratings|length > 0 %}
+						{% set avgRating = (establishment.ratings|reduce((carry, rating) => carry + rating.note) / establishment.ratings|length) %}
+						<div class="bg-white text-dark p-3 rounded shadow-sm">
+							<div class="rating-stars mb-1">
+								{% for i in 1..5 %}
+									<i class="fas fa-star{% if i > avgRating %}-half-alt{% endif %}"></i>
+								{% endfor %}
+							</div>
+							<div class="fw-bold">{{ avgRating|number_format(1) }}/5</div>
+							<small class="text-muted">{{ establishment.ratings|length }}
+								avis</small>
+						</div>
+					{% else %}
+						<div class="bg-white text-dark p-3 rounded shadow-sm">
+							<small>Aucun avis pour l'instant</small>
+						</div>
+					{% endif %}
+				</div>
+			</div>
+		</div>
+	</section>
+
+	<!-- Main Content -->
+	<main class="container mb-5">
+		<div class="row">
+			<div
+				class="col-lg-8">
+				<!-- Establishment Info Tabs -->
+				<div class="card shadow-sm mb-4">
+					<div class="card-header bg-white">
+						<ul class="nav nav-tabs card-header-tabs" id="establishmentTabs" role="tablist">
+							<li class="nav-item" role="presentation">
+								<button class="nav-link active" id="about-tab" data-bs-toggle="tab" data-bs-target="#about" type="button" role="tab">
+									<i class="fas fa-info-circle me-2"></i>À propos
+								</button>
+							</li>
+							<li class="nav-item" role="presentation">
+								<button class="nav-link" id="gallery-tab" data-bs-toggle="tab" data-bs-target="#gallery" type="button" role="tab">
+									<i class="fas fa-images me-2"></i>Galerie
+								</button>
+							</li>
+							<li class="nav-item" role="presentation">
+								<button class="nav-link" id="posts-tab" data-bs-toggle="tab" data-bs-target="#posts" type="button" role="tab">
+									<i class="fas fa-newspaper me-2"></i>Actualités
+								</button>
+							</li>
+							<li class="nav-item" role="presentation">
+								<button class="nav-link" id="reviews-tab" data-bs-toggle="tab" data-bs-target="#reviews" type="button" role="tab">
+									<i class="fas fa-star me-2"></i>Avis
+								</button>
+							</li>
+						</ul>
+					</div>
+					<div
+						class="card-body tab-content" id="establishmentTabContent">
+						<!-- About Tab -->
+						<div class="tab-pane fade show active" id="about" role="tabpanel">
+							<h3 class="mb-4">Description</h3>
+							<p class="lead">{{ establishment.description }}</p>
+
+							<div class="row mt-5">
+								<div class="col-md-6">
+									<h4 class="mb-3">
+										<i class="fas fa-info-circle text-primary me-2"></i>Informations</h4>
+									<ul class="list-group list-group-flush">
+										<li class="list-group-item d-flex align-items-center">
+											<i class="fas fa-map-marker-alt info-icon"></i>
+											<div>
+												<strong>Adresse</strong><br>
+												{{ establishment.address }}
+											</div>
+										</li>
+										<li class="list-group-item d-flex align-items-center">
+											<i class="fas fa-tag info-icon"></i>
+											<div>
+												<strong>Type</strong><br>
+												{{ establishment.type.name }}
+											</div>
+										</li>
+										<li class="list-group-item d-flex align-items-center">
+											<i class="fas fa-calendar-alt info-icon"></i>
+											<div>
+												<strong>Depuis</strong><br>
+												{{ establishment.createdAt|date('d/m/Y') }}
+											</div>
+										</li>
+									</ul>
+								</div>
+								<div class="col-md-6">
+									<h4 class="mb-3">
+										<i class="fas fa-clock text-primary me-2"></i>Horaires</h4>
+									{% if establishment.horaires|length > 0 %}
+										<div class="list-group list-group-flush">
+											{% set now = "now"|date("H:i") %}
+											{% set currentDay = "now"|date("l")|lower %}
+											{% set todaySchedule = null %}
+											{% set isOpen = false %}
+											{% set nextOpening = null %}
+
+											{# Trouver l'horaire d'aujourd'hui et déterminer si l'établissement est ouvert #}
+											{% for horaire in establishment.horaires %}
+												{% set openingTime = horaire.heureOuverture|date("H:i") %}
+												{% set closingTime = horaire.heureFermeture|date("H:i") %}
+												{% set jour = horaire.jour|lower %}
+
+												<div class="list-group-item d-flex justify-content-between align-items-center {% if jour == currentDay %}bg-light{% endif %}">
+													<div>
+														<strong>{{ horaire.jour|capitalize }}</strong>
+													</div>
+													<div>
+														{% if openingTime == '00:00' and closingTime == '23:59' %}
+															Ouvert 24h/24
+														{% else %}
+															{{ openingTime }}
+															-
+															{{ closingTime }}
+														{% endif %}
+
+														{% if jour == currentDay %}
+															{% set todaySchedule = horaire %}
+															{% if openingTime == '00:00' and closingTime == '23:59' %}
+																{% set isOpen = true %}
+															{% elseif now >= openingTime and now <= closingTime %}
+																{% set isOpen = true %}
+															{% endif %}
+														{% endif %}
+													</div>
+												</div>
+											{% endfor %}
+										</div>
+
+										{# Afficher le statut actuel #}
+										<div class="mt-3">
+											{% if todaySchedule %}
+												{% set openingTime = todaySchedule.heureOuverture|date("H:i") %}
+												{% set closingTime = todaySchedule.heureFermeture|date("H:i") %}
+
+												{% if isOpen %}
+													{% set timeToClose = (todaySchedule.heureFermeture|date("U") - "now"|date("U")) / 60 %}
+
+													{% if timeToClose <= 30 %}
+														<div class="alert alert-warning mb-0">
+															<i class="fas fa-exclamation-triangle me-2"></i>
+															Fermeture dans moins de 30 minutes
+														</div>
+													{% elseif timeToClose <= 60 %}
+														<div class="alert alert-warning mb-0">
+															<i class="fas fa-exclamation-circle me-2"></i>
+															Fermeture dans moins d'une heure
+														</div>
+													{% else %}
+														<div class="alert alert-success mb-0">
+															<i class="fas fa-check-circle me-2"></i>
+															Ouvert - Ferme à
+															{{ closingTime }}
+														</div>
+													{% endif %}
+												{% else %}
+													{% set timeToOpen = (todaySchedule.heureOuverture|date("U") - "now"|date("U")) / 60 %}
+
+													{% if timeToOpen > 0 and timeToOpen <= 60 %}
+														<div class="alert alert-info mb-0">
+															<i class="fas fa-clock me-2"></i>
+															Ouvre dans moins d'une heure ({{ openingTime }})
+														</div>
+													{% elseif timeToOpen > 0 %}
+														<div class="alert alert-info mb-0">
+															<i class="fas fa-clock me-2"></i>
+															Ouvre à
+															{{ openingTime }}
+														</div>
+													{% else %}
+														<div class="alert alert-danger mb-0">
+															<i class="fas fa-times-circle me-2"></i>
+															Fermé - Réouverture
+															{{ todaySchedule.heureOuverture|date("H:i") }}
+															{{ "tomorrow"|date("d/m") }}
+														</div>
+													{% endif %}
+												{% endif %}
+											{% else %}
+												<div class="alert alert-secondary mb-0">
+													<i class="fas fa-info-circle me-2"></i>
+													Pas d'horaire défini pour aujourd'hui
+												</div>
+											{% endif %}
+										</div>
+									{% else %}
+										<div class="alert alert-info">
+											Les horaires ne sont pas encore disponibles.
+										</div>
+									{% endif %}
+
+									<h4 class="mt-4 mb-3">
+										<i class="fas fa-phone-alt text-primary me-2"></i>Contact</h4>
+									{% if establishment.telephone %}
+										<div class="alert alert-success">
+											<i class="fas fa-phone-alt me-2"></i>
+											<strong>Téléphone :</strong>
+											{{ establishment.telephone }}
+										</div>
+									{% else %}
+										<div class="alert alert-info">
+											Les informations de contact ne sont pas encore disponibles.
+										</div>
+									{% endif %}
+
+								</div>
+							</div>
+						</div>
+
+						<!-- Gallery Tab -->
+						<div class="tab-pane fade" id="gallery" role="tabpanel">
+							{% if establishment.images|length > 0 %}
+								<div class="row g-3">
+									{% for image in establishment.images %}
+										<div class="col-md-4 col-6">
+											<img src="/establishments/{{ image.imageUrl }}" class="img-fluid rounded gallery-image" alt="Gallery image {{ loop.index }}" data-bs-toggle="modal" data-bs-target="#galleryModal" data-bs-img="/establishments/{{ image.imageUrl }}" data-bs-index="{{ loop.index0 }}">
+										</div>
+									{% endfor %}
+								</div>
+							{% else %}
+								<div class="alert alert-info">
+									Cet établissement n'a pas encore d'images dans sa galerie.
+								</div>
+							{% endif %}
+						</div>
+
+						<!-- Posts Tab -->
+						<div class="tab-pane fade" id="posts" role="tabpanel">
+							{% if establishment.posts|length > 0 %}
+								<div class="row g-4">
+									{% for post in establishment.posts|sort((a, b) => b.createdAt <=> a.createdAt) %}
+										<div class="col-12">
+											<div class="card post-card shadow-sm h-100">
+												<div class="card-body">
+													<div class="d-flex align-items-center mb-3">
+														{% if establishment.images|filter(img => img.isLogo)|length > 0 %}
+															<img src="{{ establishment.images|filter(img => img.isLogo)|first.imageUrl }}" class="rounded-circle me-3" width="40" height="40" alt="Logo">
+														{% endif %}
+														<div>
+															<h5 class="mb-0">{{ post.title }}</h5>
+															<small class="text-muted">
+																{{ post.createdAt|date('d/m/Y à H:i') }}
+															</small>
+														</div>
+													</div>
+													<p class="card-text">{{ post.content }}</p>
+
+													{% if post.images|length > 0 %}
+														<div class="row g-2 mt-3">
+															{% for image in post.images %}
+																<div class="col-md-3 col-6">
+																	<img src="{{ image.imageUrl }}" class="img-fluid rounded" alt="Post image">
+																</div>
+															{% endfor %}
+														</div>
+													{% endif %}
+												</div>
+												<div class="card-footer bg-white border-top">
+													<div class="d-flex justify-content-between">
+														<div>
+															<button class="btn btn-sm btn-outline-secondary me-2">
+																<i class="far fa-thumbs-up me-1"></i>
+																{{ post.likes|length }}
+																J'aime
+															</button>
+															<button class="btn btn-sm btn-outline-secondary">
+																<i class="far fa-comment me-1"></i>
+																{{ post.comments|length }}
+																Commentaires
+															</button>
+														</div>
+														<button class="btn btn-sm btn-outline-primary">
+															<i class="fas fa-share-alt me-1"></i>
+															Partager
+														</button>
+													</div>
+												</div>
+											</div>
+										</div>
+									{% endfor %}
+								</div>
+							{% else %}
+								<div class="alert alert-info">
+									Cet établissement n'a pas encore publié d'actualités.
+								</div>
+							{% endif %}
+						</div>
+
+						<!-- Reviews Tab -->
+						<div class="tab-pane fade" id="reviews" role="tabpanel">
+							{% if establishment.ratings|length > 0 %}
+								<div class="row mb-4">
+									<div class="col-md-6">
+										<div class="card bg-light">
+											<div class="card-body text-center">
+												<h2 class="display-4 fw-bold text-primary">
+													{{ (establishment.ratings|reduce((carry, rating) => carry + rating.note) / establishment.ratings|length)|number_format(1) }}
+												</h2>
+												<div class="rating-stars mb-2">
+													{% for i in 1..5 %}
+														<i class="fas fa-star{% if i > avgRating %}-half-alt{% endif %}"></i>
+													{% endfor %}
+												</div>
+												<p class="mb-0">{{ establishment.ratings|length }}
+													avis</p>
+											</div>
+										</div>
+									</div>
+									<div class="col-md-6">
+										<div class="card bg-light">
+											<div class="card-body">
+												{% for i in 5..1 %}
+													{% set count = establishment.ratings|filter(r => r.note == i)|length %}
+													{% set percentage = (count / establishment.ratings|length) * 100 %}
+													<div class="row align-items-center mb-2">
+														<div class="col-2 text-end">
+															<small>{{ i }}
+																étoile
+																{% if i > 1 %}s
+																{% endif %}
+															</small>
+														</div>
+														<div class="col-8">
+															<div class="progress" style="height: 10px;">
+																<div class="progress-bar bg-warning" role="progressbar" style="width: {{ percentage }}%"></div>
+															</div>
+														</div>
+														<div class="col-2">
+															<small>{{ count }}</small>
+														</div>
+													</div>
+												{% endfor %}
+											</div>
+										</div>
+									</div>
+								</div>
+
+								<div class="list-group">
+									{% for rating in establishment.ratings|sort((a, b) => b.createdAt <=> a.createdAt) %}
+										<div class="list-group-item mb-3 rounded shadow-sm">
+											<div class="d-flex justify-content-between mb-2">
+												<div
+													class="d-flex align-items-center">
+													{# {% if rating.user.avatar %}
+																																																																																																																																																																																																																																											<img src="{{ rating.user.avatar }}" class="rounded-circle me-3" width="40" height="40" alt="User avatar">
+																																																																																																																																																																																																																																										{% endif %} #}
+													<img src="/establishments/1.jpg" class="rounded-circle me-3" width="40" height="40" alt="User avatar">
+													<div>
+														<h6 class="mb-0">{{ rating.user.username }}</h6>
+														<small class="text-muted">
+															{{ rating.createdAt|date('d/m/Y') }}
+														</small>
+													</div>
+												</div>
+												<div class="rating-stars">
+													{% for i in 1..5 %}
+														<i class="fas fa-star{% if i > rating.note %}-half-alt{% endif %}"></i>
+													{% endfor %}
+												</div>
+											</div>
+											<p class="mb-0">{{ rating.comment }}</p>
+										</div>
+									{% endfor %}
+								</div>
+							{% else %}
+								<div class="alert alert-info">
+									Cet établissement n'a pas encore reçu d'avis.
+								</div>
+							{% endif %}
+
+							<div class="card mt-4">
+								<div class="card-header bg-white">
+									<h5 class="mb-0">Laisser un avis</h5>
+								</div>
+								<div class="card-body">
+									<form id="rating-form">
+										<div class="mb-3">
+											<label class="form-label">Note</label>
+											<div class="rating-stars">
+												{% for i in 1..5 %}
+													<i class="far fa-star" data-rating="{{ i }}"></i>
+												{% endfor %}
+												<input type="hidden" name="rating" id="rating-value" value="0" required>
+											</div>
+											<div class="invalid-feedback">Veuillez sélectionner une note</div>
+										</div>
+										<div class="mb-3">
+											<label for="comment" class="form-label">Commentaire</label>
+											<textarea class="form-control" id="comment" name="comment" rows="3" required></textarea>
+											<div class="invalid-feedback">Veuillez saisir un commentaire</div>
+										</div>
+										<button type="submit" class="btn btn-primary">Envoyer</button>
+									</form>
+								</div>
+							</div>
+						</div>
+					</div>
+				</div>
+			</div>
+
+			<div
+				class="col-lg-4">
+				<!-- Contact Card -->
+				<div class="card shadow-sm mb-4">
+					<div class="card-header bg-white">
+						<h5 class="mb-0">
+							<i class="fas fa-paper-plane me-2"></i>Contact</h5>
+					</div>
+					<div class="card-body">
+						<form>
+							<div class="mb-3">
+								<label for="contact-name" class="form-label">Votre nom</label>
+								<input type="text" class="form-control" id="contact-name">
+							</div>
+							<div class="mb-3">
+								<label for="contact-email" class="form-label">Votre email</label>
+								<input type="email" value="{{app.user.email}}" class="form-control" id="contact-email">
+							</div>
+							<div class="mb-3">
+								<label for="contact-message" class="form-label">Message</label>
+								<textarea class="form-control" id="contact-message" rows="3"></textarea>
+							</div>
+							<button type="submit" class="btn btn-primary w-100">Envoyer un message</button>
+						</form>
+					</div>
+				</div>
+
+				<!-- Dans votre bloc body, remplacez la section Map Card et Route Overlay par ceci -->
+				<!-- Map Card -->
+				<div class="card shadow-sm mb-4">
+					<div class="card-header bg-white">
+						<h5 class="mb-0">
+							<i class="fas fa-map-marked-alt me-2"></i>Localisation
+						</h5>
+					</div>
+					<div class="card-body p-0">
+						<div id="map" style="height: 300px;"></div>
+					</div>
+					<div class="card-footer bg-white">
+						<button class="btn btn-primary w-100" id="showRouteBtn">
+							<i class="fas fa-route me-2"></i>Suivre l'itinéraire
+						</button>
+					</div>
+				</div>
+
+				<!-- Modal pour choisir le mode de transport -->
+				<div class="modal fade" id="transportModal" tabindex="-1" aria-hidden="true">
+					<div class="modal-dialog">
+						<div class="modal-content">
+							<div class="modal-header">
+								<h5 class="modal-title">Choisissez votre mode de transport</h5>
+								<button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+							</div>
+							<div class="modal-body">
+								<div class="d-grid gap-2">
+									<button type="button" class="btn btn-outline-primary transport-btn" data-transport="driving">
+										<i class="fas fa-car me-2"></i>En voiture
+									</button>
+									<button type="button" class="btn btn-outline-success transport-btn" data-transport="walking">
+										<i class="fas fa-walking me-2"></i>À pied
+									</button>
+									<button type="button" class="btn btn-outline-info transport-btn" data-transport="bicycling">
+										<i class="fas fa-bicycle me-2"></i>En vélo
+									</button>
+									<button type="button" class="btn btn-outline-warning transport-btn" data-transport="transit">
+										<i class="fas fa-bus me-2"></i>Transports en commun
+									</button>
+								</div>
+							</div>
+						</div>
+					</div>
+				</div>
+
+				<!-- Overlay pour l'itinéraire -->
+				<div id="routeOverlay" class="position-fixed top-0 start-0 w-100 h-100 bg-white" style="display: none; z-index: 1050;">
+					<div class="container-fluid h-100">
+						<div class="row h-100">
+							<div class="col-md-8 h-100 p-0">
+								<div id="routeMap" class="h-100 w-100"></div>
+							</div>
+							<div class="col-md-4 p-4">
+								<button class="btn btn-danger mb-4" id="closeRouteBtn">
+									<i class="fas fa-times me-2"></i>Fermer l'itinéraire
+								</button>
+								<div id="routeInstructions" class="overflow-auto" style="max-height: 80vh;"></div>
+							</div>
+						</div>
+					</div>
+				</div>
+
+				<!-- Voice Guidance Controls -->
+				<div class="voice-controls d-none" id="voiceControls">
+					<button class="btn btn-primary" id="toggleVoice">
+						<i class="fas fa-volume-up"></i>
+						<span id="voiceStatus">Activer guidage vocal</span>
+					</button>
+					<button class="btn btn-outline-secondary ms-2" id="stopVoice">
+						<i class="fas fa-stop"></i>
+					</button>
+				</div>
+
+				<style>
+					.custom-marker {
+						background: transparent;
+						border: none;
+					}
+
+					#map {
+						height: 500px;
+						width: 100%;
+						border-radius: 8px;
+					}
+
+					#routeMap {
+						height: 100%;
+						width: 100%;
+					}
+
+					#routeOverlay {
+						position: fixed;
+						top: 0;
+						left: 0;
+						right: 0;
+						bottom: 0;
+						background: rgba(0, 0, 0, 0.8);
+						z-index: 1000;
+						display: none;
+						padding: 20px;
+					}
+
+					.route-container {
+						display: flex;
+						height: calc(100% - 60px);
+						gap: 20px;
+					}
+
+					.map-container {
+						flex: 2;
+						height: 100%;
+					}
+
+					.instructions-container {
+						flex: 1;
+						height: 100%;
+						overflow-y: auto;
+						background: white;
+						padding: 15px;
+						border-radius: 8px;
+					}
+
+					.close-btn-container {
+						text-align: right;
+						margin-bottom: 10px;
+					}
+				</style>
+
+				<!-- Overlay pour l'itinéraire -->
+				<div id="routeOverlay" class="position-fixed top-0 start-0 w-100 h-100 bg-white d-none">
+					<div class="container-fluid h-100">
+						<div class="row h-100">
+							<div class="col-md-8 h-100 p-0">
+								<div class="ratio ratio-16x9 h-100">
+									<iframe src="" id="routeIframe" allowfullscreen class="h-100 w-100"></iframe>
+								</div>
+							</div>
+							<div class="col-md-4 p-4">
+								<button class="btn btn-danger mb-4" id="closeRouteBtn">
+									<i class="fas fa-times me-2"></i>Fermer l'itinéraire
+								</button>
+								<div
+									id="routeInstructions" class="overflow-auto" style="max-height: 80vh;"><!-- Les instructions seront ajoutées ici -->
+								</div>
+							</div>
+						</div>
+					</div>
+				</div>
+
+				<!-- Similar Establishments -->
+				<div class="card shadow-sm">
+					<div class="card-header bg-white">
+						<h5 class="mb-0">
+							<i class="fas fa-store me-2"></i>Établissements similaires</h5>
+					</div>
+					<div class="card-body">
+						<div class="list-group list-group-flush">
+							{% for similar in establishment.type.establishments|slice(0, 3) %}
+								{% if similar.id != establishment.id %}
+									<a href="{{ path('app_establishment_show', {id: similar.id}) }}" class="list-group-item list-group-item-action">
+										<div class="d-flex align-items-center">
+											{% if similar.images|filter(img => img.isLogo)|length > 0 %}
+												<img src="{{ similar.images|filter(img => img.isLogo)|first.imageUrl }}" class="rounded-circle me-3" width="40" height="40" alt="Logo">
+											{% endif %}
+											<div>
+												<h6 class="mb-0">{{ similar.name }}</h6>
+												<small class="text-muted">{{ similar.type.name }}</small>
+											</div>
+										</div>
+									</a>
+								{% endif %}
+							{% else %}
+								<div class="alert alert-info mb-0">
+									Aucun établissement similaire trouvé.
+								</div>
+							{% endfor %}
+						</div>
+					</div>
+				</div>
+			</div>
+		</div>
+	</main>
+
+	<!-- Gallery Modal -->
+	<div class="modal fade" id="galleryModal" tabindex="-1" aria-hidden="true">
+		<div class="modal-dialog modal-dialog-centered modal-lg">
+			<div class="modal-content">
+				<div class="modal-header">
+					<h5 class="modal-title">Galerie photo</h5>
+					<button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+				</div>
+				<div class="modal-body text-center">
+					<img src="" id="modalImage" class="img-fluid" alt="Gallery image">
+				</div>
+				<div class="modal-footer justify-content-between">
+					<button class="btn btn-outline-secondary" id="prevImage">
+						<i class="fas fa-chevron-left me-2"></i>Précédent
+					</button>
+					<button class="btn btn-outline-secondary" id="nextImage">
+						Suivant<i class="fas fa-chevron-right ms-2"></i>
+					</button>
+				</div>
+			</div>
+		</div>
+	</div>
+{% endblock %}
+
+{% block javascripts %}
+	{{ parent() }}
+ <script>
+			        // Gallery modal functionality
+const galleryModal = document.getElementById('galleryModal');
+if (galleryModal) {
+    let currentIndex = 0;
+    let images = [];
+    
+    galleryModal.addEventListener('show.bs.modal', function(event) {
+        const button = event.relatedTarget;
+        currentIndex = parseInt(button.getAttribute('data-bs-index'));
+        
+        // Récupérer toutes les images de la galerie
+        images = Array.from(document.querySelectorAll('.gallery-image')).map(img => ({
+            src: img.getAttribute('data-bs-img'),
+            index: parseInt(img.getAttribute('data-bs-index'))
+        }));
+        
+        document.getElementById('modalImage').src = button.getAttribute('data-bs-img');
+        updateNavButtons();
+    });
+    
+    function updateNavButtons() {
+        document.getElementById('prevImage').disabled = currentIndex <= 0;
+        document.getElementById('nextImage').disabled = currentIndex >= images.length - 1;
+    }
+    
+    function showImage(index) {
+        if (index >= 0 && index < images.length) {
+            currentIndex = index;
+            document.getElementById('modalImage').src = images[currentIndex].src;
+            updateNavButtons();
+        }
+    }
+    
+    document.getElementById('prevImage').addEventListener('click', function() {
+        showImage(currentIndex - 1);
+    });
+    
+    document.getElementById('nextImage').addEventListener('click', function() {
+        showImage(currentIndex + 1);
+    });
+    
+    // Navigation au clavier
+    document.addEventListener('keydown', function(e) {
+        if (galleryModal.classList.contains('show')) {
+            if (e.key === 'ArrowLeft') {
+                showImage(currentIndex - 1);
+            } else if (e.key === 'ArrowRight') {
+                showImage(currentIndex + 1);
+            }
+        }
+    });
+}
+			    </script>
+
+	 <script>
+																					// Favoris functionality
+																document.querySelectorAll('.toggle-favorite').forEach(button => {
+																    button.addEventListener('click', async function() {
+																        if (!{{ app.user ? 'true' : 'false' }}) {
+																            window.location.href = "{{ path('app_login') }}";
+																            return;
+																        }
+																
+																        const establishmentId = this.getAttribute('data-establishment-id');
+																        const isFavorite = this.getAttribute('data-is-favorite') === 'true';
+																        
+																        try {
+																            const response = await fetch(`/establishment/${establishmentId}/toggle-favorite`, {
+																                method: 'POST',
+																                headers: {
+																                    'Content-Type': 'application/json',
+																                    'X-Requested-With': 'XMLHttpRequest'
+																                }
+																            });
+																            
+																            const data = await response.json();
+																            
+																            if (response.ok) {
+																                this.setAttribute('data-is-favorite', data.isFavorite);
+																                const icon = this.querySelector('i');
+																                const text = this.querySelector('.favorite-text');
+																                
+																                if (data.isFavorite) {
+																                    icon.classList.remove('far');
+																                    icon.classList.add('fas');
+																                    text.textContent = 'Retirer des favoris';
+																                } else {
+																                    icon.classList.remove('fas');
+																                    icon.classList.add('far');
+																                    text.textContent = 'Ajouter aux favoris';
+																                }
+																            }
+																        } catch (error) {
+																            console.error('Error:', error);
+																        }
+																    });
+																});
+																				</script>
+
+
+	 <script>
+																					// Rating form submission
+														const ratingForm = document.getElementById('rating-form');
+														if (ratingForm) {
+														    ratingForm.addEventListener('submit', async function(e) {
+														        e.preventDefault();
+														        
+														        if (!{{ app.user ? 'true' : 'false' }}) {
+														            window.location.href = "{{ path('app_login') }}";
+														            return;
+														        }
+														
+														        const formData = new FormData(this);
+														        const ratingValue = document.getElementById('rating-value').value;
+														        
+														        if (ratingValue === '0') {
+														            alert('Veuillez sélectionner une note');
+														            return;
+														        }
+														
+														        try {
+														            const response = await fetch("{{ path('app_establishment_rate', {id: establishment.id}) }}", {
+														                method: 'POST',
+														                body: formData,
+														                headers: {
+														                    'X-Requested-With': 'XMLHttpRequest'
+														                }
+														            });
+														            
+														            const data = await response.json();
+														            
+														            if (data.success) {
+														                // Add the new rating to the list
+														                const ratingsList = document.querySelector('#reviews .list-group');
+														                const newRating = document.createElement('div');
+														                newRating.className = 'list-group-item mb-3 rounded shadow-sm';
+														                newRating.innerHTML = `
+														                    <div class="d-flex justify-content-between mb-2">
+														                        <div class="d-flex align-items-center">
+														                            <img src="/establishments/1.jpg" class="rounded-circle me-3" width="40" height="40" alt="User avatar">
+														                            <div>
+														                                <h6 class="mb-0">${data.rating.username}</h6>
+														                                <small class="text-muted">${data.rating.createdAt}</small>
+														                            </div>
+														                        </div>
+														                        <div class="rating-stars">
+														                            ${Array.from({length: 5}, (_, i) => 
+														                                `<i class="fas fa-star${i >= data.rating.note ? '-half-alt' : ''}"></i>`
+														                            ).join('')}
+														                        </div>
+														                    </div>
+														                    <p class="mb-0">${data.rating.comment}</p>
+														                `;
+														                
+														                ratingsList.prepend(newRating);
+														                ratingForm.reset();
+														                
+														                // Reset stars
+														                document.querySelectorAll('.rating-stars i[data-rating]').forEach(star => {
+														                    star.classList.remove('fas');
+														                    star.classList.add('far');
+														                });
+														                document.getElementById('rating-value').value = '0';
+														                
+														                // Show success message
+														                const alert = document.createElement('div');
+														                alert.className = 'alert alert-success mt-3';
+														                alert.textContent = 'Votre avis a été enregistré avec succès !';
+														                ratingForm.appendChild(alert);
+														                setTimeout(() => alert.remove(), 3000);
+														            }
+														        } catch (error) {
+														            console.error('Error:', error);
+														        }
+														    });
+														}
+																				</script>
+
+	 <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+	 <script src="https://unpkg.com/leaflet-routing-machine@3.2.12/dist/leaflet-routing-machine.js"></script>
+
+	 <script>
+	    document.addEventListener('turbo:load', function() {
+	        // Coordonnées de l'établissement
+	        const destLat = {{ locationData.latitude }};
+	        const destLng = {{ locationData.longitude }};
+	        
+	        // Initialiser la carte principale avec vue satellite
+	        const map = L.map('map').setView([destLat, destLng], 15);
+	        
+	        // Couche satellite (utilisant OpenStreetMap France)
+	        L.tileLayer('https://{s}.tile.openstreetmap.fr/osmfr/{z}/{x}/{y}.jpg', {
+	            attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors',
+	            maxZoom: 20
+	        }).addTo(map);
+	        
+	        // Ajouter une option pour basculer entre vue carte et satellite
+	        const baseLayers = {
+	            "Satellite": L.tileLayer('https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}', {
+	                attribution: 'Tiles &copy; Esri &mdash; Source: Esri, i-cubed, USDA, USGS, AEX, GeoEye, Getmapping, Aerogrid, IGN, IGP, UPR-EGP, and the GIS User Community',
+	                maxZoom: 19
+	            }),
+	            "Carte": L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+	                attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors',
+	                maxZoom: 19
+	            })
+	        };
+	        
+	        // Ajouter le contrôle des couches
+	        L.control.layers(baseLayers, null, {position: 'topright'}).addTo(map);
+	        
+	        // Activer la vue satellite par défaut
+	        baseLayers["Satellite"].addTo(map);
+	        
+	        // Ajouter un marqueur pour l'établissement
+	        const marker = L.marker([destLat, destLng], {
+	            icon: L.divIcon({
+	                className: 'custom-marker',
+	                html: '<i class="fas fa-map-marker-alt" style="color: #e74c3c; font-size: 2rem;"></i>',
+	                iconSize: [32, 32],
+	                iconAnchor: [16, 32]
+	            })
+	        }).addTo(map);
+	        
+	        marker.bindPopup("{{ establishment.name }}").openPopup();
+	
+	        // Gestion de l'itinéraire
+	        const showRouteBtn = document.getElementById('showRouteBtn');
+	        const transportModal = new bootstrap.Modal(document.getElementById('transportModal'));
+	        const routeOverlay = document.getElementById('routeOverlay');
+	        const closeRouteBtn = document.getElementById('closeRouteBtn');
+	        const routeInstructions = document.getElementById('routeInstructions');
+	        
+	        let routeMap;
+	        let routeControl;
+	
+	        // Variables pour la synthèse vocale
+	        let speechSynthesis = window.speechSynthesis || window.webkitSpeechSynthesis;
+	        let speechUtterance = null;
+	        let currentInstructionIndex = 0;
+	        let instructionTimeouts = [];
+	
+	        // Détection de la langue (priorité: user > navigateur > anglais)
+	        function getCurrentLanguage() {
+	            // Priorité 1: Langue de l'utilisateur connecté
+	            {% if app.user and app.user.language %}
+	                return '{{ app.user.language }}';
+	            {% endif %}
+	            
+	            // Priorité 2: Langue du navigateur
+	            const browserLang = navigator.language || navigator.userLanguage;
+	            const lang = browserLang.split('-')[0];
+	            
+	            // Langues supportées
+	            const supportedLangs = ['fr', 'en', 'es'];
+	            return supportedLangs.includes(lang) ? lang : 'en';
+	        }
+	        
+	        // Traductions pour les modes de transport
+	        function getTransportName(transport, lang) {
+	            const translations = {
+	                'driving': { fr: 'en voiture', en: 'by car', es: 'en coche' },
+	                'walking': { fr: 'à pied', en: 'walking', es: 'a pie' },
+	                'bicycling': { fr: 'en vélo', en: 'by bicycle', es: 'en bicicleta' },
+	                'transit': { fr: 'en transports en commun', en: 'by public transport', es: 'en transporte público' }
+	            };
+	            return translations[transport][lang] || translations[transport]['en'];
+	        }
+	        
+	        // Traduction des instructions de navigation
+	        function translateInstruction(text, lang) {
+	            const translations = {
+	                'Head': { fr: 'Direction', en: 'Head', es: 'Dirección' },
+	                'on': { fr: 'sur', en: 'on', es: 'en' },
+	                'toward': { fr: 'vers', en: 'toward', es: 'hacia' },
+	                'Continue': { fr: 'Continuez', en: 'Continue', es: 'Continúe' },
+	                'Turn left': { fr: 'Tournez à gauche', en: 'Turn left', es: 'Gire a la izquierda' },
+	                'Turn right': { fr: 'Tournez à droite', en: 'Turn right', es: 'Gire a la derecha' },
+	                'sharp left': { fr: 'virage serré à gauche', en: 'sharp left', es: 'giro cerrado a la izquierda' },
+	                'sharp right': { fr: 'virage serré à droite', en: 'sharp right', es: 'giro cerrado a la derecha' },
+	                'slight left': { fr: 'légèrement à gauche', en: 'slight left', es: 'ligeramente a la izquierda' },
+	                'slight right': { fr: 'légèrement à droite', en: 'slight right', es: 'ligeramente a la derecha' },
+	                'Go straight': { fr: 'Tout droit', en: 'Go straight', es: 'Siga recto' },
+	                'Destination': { fr: 'Destination', en: 'Destination', es: 'Destino' },
+	                'You have arrived': { fr: 'Vous êtes arrivé', en: 'You have arrived', es: 'Ha llegado' },
+	                'onto': { fr: 'sur', en: 'onto', es: 'en' },
+	                'Take the exit': { fr: 'Prenez la sortie', en: 'Take the exit', es: 'Tome la salida' },
+	                'Roundabout': { fr: 'Rond-point', en: 'Roundabout', es: 'Rotonda' },
+	                'and take the': { fr: 'et prenez la', en: 'and take the', es: 'y tome la' },
+	                'exit': { fr: 'sortie', en: 'exit', es: 'salida' },
+	                'left': { fr: 'gauche', en: 'left', es: 'izquierda' },
+	                'right': { fr: 'droite', en: 'right', es: 'derecha' },
+	                'at': { fr: 'au', en: 'at', es: 'en' },
+	                'the': { fr: 'le/la', en: 'the', es: 'el/la' },
+	                'in': { fr: 'dans', en: 'in', es: 'en' },
+	                'm': { fr: 'mètres', en: 'meters', es: 'metros' }
+	            };
+	
+	            Object.keys(translations).forEach(term => {
+	                const regex = new RegExp(`\\b${term}\\b`, 'gi');
+	                text = text.replace(regex, translations[term][lang] || translations[term]['en']);
+	            });
+	
+	            return text;
+	        }
+	
+	        // Parler une instruction
+	        function speak(text, lang) {
+	            if (!speechSynthesis) return;
+	            
+	            // Annuler toute instruction en cours
+	            speechSynthesis.cancel();
+	            
+	            const voices = speechSynthesis.getVoices();
+	            const langCode = lang === 'fr' ? 'fr-FR' : lang === 'es' ? 'es-ES' : 'en-US';
+	            const voice = voices.find(v => v.lang === langCode) || 
+	                         voices.find(v => v.lang.startsWith(lang)) || 
+	                         voices[0];
+	            
+	            if (!voice) return;
+	            
+	            speechUtterance = new SpeechSynthesisUtterance(text);
+	            speechUtterance.voice = voice;
+	            speechUtterance.lang = langCode;
+	            speechUtterance.rate = 1.0;
+	            speechUtterance.pitch = 1.0;
+	            
+	            speechSynthesis.speak(speechUtterance);
+	        }
+	
+	        // Lancer le guidage vocal automatique
+	        function startVoiceGuidance(instructions) {
+	            // Nettoyer les timeouts précédents
+	            instructionTimeouts.forEach(clearTimeout);
+	            instructionTimeouts = [];
+	            currentInstructionIndex = 0;
+	            
+	            const lang = getCurrentLanguage();
+	            const voiceTranslations = {
+	                'prepare': { fr: 'Préparez-vous à', en: 'Prepare to', es: 'Prepárese para' },
+	                'in_distance': { fr: 'dans', en: 'in', es: 'en' },
+	                'then': { fr: 'Puis', en: 'Then', es: 'Luego' },
+	                'arrived': { fr: 'Vous êtes arrivé à destination', en: 'You have arrived at your destination', es: 'Ha llegado a su destino' }
+	            };
+	            
+	            // Planifier chaque instruction
+	            instructions.forEach((instruction, index) => {
+	                const timeoutId = setTimeout(() => {
+	                    const text = instruction.text;
+	                    const distanceMatch = text.match(/(\d+)\s*(m|meters|mètres|metros)/i);
+	                    let distance = '';
+	                    
+	                    if (distanceMatch) {
+	                        distance = ` ${voiceTranslations['in_distance'][lang]} ${distanceMatch[1]} ${lang === 'fr' ? 'mètres' : lang === 'es' ? 'metros' : 'meters'}`;
+	                    }
+	                    
+	                    const actionText = translateInstruction(text.replace(/(\d+)\s*(m|meters|mètres|metros)/i, ''), lang).trim();
+	                    const fullText = index === 0 ? 
+	                        `${voiceTranslations['prepare'][lang]} ${actionText}${distance}` :
+	                        `${voiceTranslations['then'][lang]} ${actionText}${distance}`;
+	                    
+	                    speak(fullText, lang);
+	                    currentInstructionIndex = index;
+	                }, index * 6000); // 6s entre chaque instruction
+	                
+	                instructionTimeouts.push(timeoutId);
+	            });
+	            
+	            // Annonce d'arrivée
+	            const arrivalTimeout = setTimeout(() => {
+	                speak(voiceTranslations['arrived'][lang], lang);
+	            }, instructions.length * 6000);
+	            
+	            instructionTimeouts.push(arrivalTimeout);
+	        }
+	
+	        // Arrêter le guidage vocal
+	        function stopVoiceGuidance() {
+	            if (speechSynthesis) {
+	                speechSynthesis.cancel();
+	            }
+	            instructionTimeouts.forEach(clearTimeout);
+	            instructionTimeouts = [];
+	        }
+	
+	        // Initialiser les voix
+	        function initVoices() {
+	            if (!speechSynthesis) return;
+	            
+	            // Certains navigateurs chargent les voix de manière asynchrone
+	            if (speechSynthesis.getVoices().length === 0) {
+	                speechSynthesis.addEventListener('voiceschanged', function() {
+	                    this.removeEventListener('voiceschanged', arguments.callee);
+	                });
+	            }
+	        }
+	
+	        // Initialisation
+	        initVoices();
+	
+	        if (showRouteBtn) {
+	            showRouteBtn.addEventListener('click', function() {
+	                transportModal.show();
+	            });
+	        }
+	        
+	        document.querySelectorAll('.transport-btn').forEach(btn => {
+	            btn.addEventListener('click', function() {
+	                const transport = this.getAttribute('data-transport');
+	                showRoute(transport);
+	                transportModal.hide();
+	            });
+	        });
+	        
+	        closeRouteBtn.addEventListener('click', function() {
+	            routeOverlay.style.display = 'none';
+	            if (routeMap) {
+	                routeMap.remove();
+	                routeMap = null;
+	            }
+	            stopVoiceGuidance();
+	        });
+	        
+	        function showRoute(transport) {
+	            if (navigator.geolocation) {
+	                navigator.geolocation.getCurrentPosition(
+	                    function(position) {
+	                        const userLat = position.coords.latitude;
+	                        const userLng = position.coords.longitude;
+	                        
+	                        // Afficher l'overlay
+	                        routeOverlay.style.display = 'block';
+	                        
+	                        // Initialiser la carte d'itinéraire avec vue satellite
+	                        routeMap = L.map('routeMap').setView([userLat, userLng], 13);
+	                        
+	                        // Couche satellite pour l'itinéraire
+	                        L.tileLayer('https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}', {
+	                            attribution: 'Tiles &copy; Esri &mdash; Source: Esri, i-cubed, USDA, USGS, AEX, GeoEye, Getmapping, Aerogrid, IGN, IGP, UPR-EGP, and the GIS User Community',
+	                            maxZoom: 19
+	                        }).addTo(routeMap);
+	                        
+	                        // Ajouter les marqueurs
+	                        L.marker([userLat, userLng], {
+	                            icon: L.divIcon({
+	                                className: 'custom-marker',
+	                                html: '<i class="fas fa-user" style="color: #3498db; font-size: 1.5rem;"></i>',
+	                                iconSize: [24, 24],
+	                                iconAnchor: [12, 24]
+	                            })
+	                        }).addTo(routeMap)
+	                        .bindPopup("Votre position")
+	                        .openPopup();
+	                        
+	                        L.marker([destLat, destLng], {
+	                            icon: L.divIcon({
+	                                className: 'custom-marker',
+	                                html: '<i class="fas fa-map-marker-alt" style="color: #e74c3c; font-size: 1.5rem;"></i>',
+	                                iconSize: [24, 24],
+	                                iconAnchor: [12, 24]
+	                            })
+	                        }).addTo(routeMap)
+	                        .bindPopup("{{ establishment.name }}");
+	                        
+	                        // Configurer le routage
+	                        const vehicle = transport === 'walking' ? 'foot' : 
+	                                      transport === 'bicycling' ? 'bicycle' : 
+	                                      transport === 'transit' ? 'bus' : 'car';
+	                        
+	                        const userLanguage = getCurrentLanguage();
+	                        
+	                        routeControl = L.Routing.control({
+	                            waypoints: [
+	                                L.latLng(userLat, userLng),
+	                                L.latLng(destLat, destLng)
+	                            ],
+	                            routeWhileDragging: true,
+	                            showAlternatives: false,
+	                            fitSelectedRoutes: true,
+	                            show: false,
+	                            router: new L.Routing.osrmv1({
+	                                serviceUrl: 'https://router.project-osrm.org/route/v1',
+	                                profile: vehicle
+	                            }),
+	                            lineOptions: {
+	                                styles: [
+	                                    {
+	                                        color: '#3a7bd5',
+	                                        opacity: 0.8,
+	                                        weight: 6
+	                                    }
+	                                ]
+	                            },
+	                            formatter: new L.Routing.Formatter({
+	                                language: userLanguage
+	                            })
+	                        }).addTo(routeMap);
+	                        
+	                        // Écouter les événements de routage
+	                        routeControl.on('routesfound', function(e) {
+	                            const routes = e.routes;
+	                            const instructions = routes[0].instructions;
+	                            
+	                            displayRouteInstructions(instructions, transport);
+	                            startVoiceGuidance(instructions);
+	                        });
+	                    },
+	                    function(error) {
+	                        const lang = getCurrentLanguage();
+	                        const errorMessage = {
+	                            fr: 'Impossible d\'obtenir votre position. Veuillez activer la géolocalisation.',
+	                            en: 'Unable to get your location. Please enable geolocation.',
+	                            es: 'No se puede obtener su ubicación. Por favor active la geolocalización.'
+	                        };
+	                        alert(errorMessage[lang] || errorMessage['en']);
+	                    }
+	                );
+	            } else {
+	                const lang = getCurrentLanguage();
+	                const errorMessage = {
+	                    fr: 'La géolocalisation n\'est pas supportée par votre navigateur.',
+	                    en: 'Geolocation is not supported by your browser.',
+	                    es: 'La geolocalización no es compatible con su navegador.'
+	                };
+	                alert(errorMessage[lang] || errorMessage['en']);
+	            }
+	        }
+	        
+	        function displayRouteInstructions(instructions, transport) {
+	            const userLang = getCurrentLanguage();
+	            const transportName = getTransportName(transport, userLang);
+	            
+	            const translations = {
+	                routeTitle: { fr: 'Itinéraire', en: 'Route', es: 'Ruta' },
+	                destination: { fr: 'Destination', en: 'Destination', es: 'Destino' },
+	                address: { fr: 'Adresse', en: 'Address', es: 'Dirección' },
+	                estimatedTime: { fr: 'Temps estimé', en: 'Estimated time', es: 'Tiempo estimado' },
+	                minutes: { fr: 'minutes', en: 'minutes', es: 'minutos' }
+	            };
+	            
+	            let html = `
+	                <h4>${translations.routeTitle[userLang]} ${transportName}</h4>
+	                <p>${translations.destination[userLang]}: {{ establishment.name }}</p>
+	                <p>${translations.address[userLang]}: {{ establishment.address }}</p>
+	                <hr>
+	                <ol class="list-group list-group-numbered">
+	            `;
+	            
+	            instructions.forEach(instruction => {
+	                const translatedText = translateInstruction(instruction.text, userLang);
+	                html += `<li class="list-group-item">${translatedText}</li>`;
+	            });
+	            
+	            const totalTime = instructions.reduce((sum, instr) => sum + instr.time, 0);
+	            const minutes = Math.round(totalTime / 60);
+	            
+	            html += `
+	                </ol>
+	                <div class="alert alert-info mt-3">
+	                    <i class="fas fa-info-circle me-2"></i>
+	                    ${translations.estimatedTime[userLang]}: ${minutes} ${translations.minutes[userLang]}
+	                </div>
+	            `;
+	            
+	            routeInstructions.innerHTML = html;
+	        }
+	
+	        // Surcharge du formatter pour les popups
+	        L.Routing.Formatter.prototype._formatInstruction = function(instr, type) {
+	            const userLang = getCurrentLanguage();
+	            let text = instr.text;
+	            
+	            if (userLang !== 'en') {
+	                text = translateInstruction(text, userLang);
+	            }
+	            
+	            return text;
+	        };
+	    });
+	</script>
+
+{% endblock %}

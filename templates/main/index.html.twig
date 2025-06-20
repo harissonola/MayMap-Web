@@ -1,0 +1,298 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}Accueil
+{% endblock %}
+
+{% block stylesheets %}
+	{{ parent() }}
+	<style>
+		.hero-section {
+			background: linear-gradient(135deg, #6e8efb, #a777e3);
+			color: white;
+			padding: 6rem 0;
+			margin-bottom: 3rem;
+			border-radius: 0 0 20px 20px;
+			position: relative;
+			overflow: hidden;
+		}
+		.hero-section::before {
+			content: '';
+			position: absolute;
+			top: 0;
+			left: 0;
+			right: 0;
+			bottom: 0;
+			background: url('/img/home.png') center/cover;
+			opacity: 0.15;
+			z-index: 0;
+		}
+		.hero-content {
+			position: relative;
+			z-index: 1;
+		}
+		.category-card {
+			transition: transform 0.3s, box-shadow 0.3s;
+			border: none;
+			border-radius: 15px;
+			overflow: hidden;
+			cursor: pointer;
+		}
+		.category-card:hover {
+			transform: translateY(-10px);
+			box-shadow: 0 15px 30px rgba(0, 0, 0, 0.1);
+		}
+		.top-badge {
+			position: absolute;
+			top: 10px;
+			right: 10px;
+			background: linear-gradient(45deg, #FFD700, #FFA500);
+			color: #333;
+			font-weight: bold;
+			padding: 5px 10px;
+			border-radius: 20px;
+			font-size: 0.8rem;
+		}
+		.establishment-card {
+			border: none;
+			border-radius: 15px;
+			overflow: hidden;
+			transition: all 0.3s;
+			position: relative;
+		}
+		.establishment-card:hover {
+			box-shadow: 0 10px 20px rgba(0, 0, 0, 0.1);
+			transform: translateY(-5px);
+		}
+		.rating-stars {
+			color: #FFD700;
+		}
+		.section-title {
+			position: relative;
+			margin-bottom: 2.5rem;
+			text-align: center;
+			font-weight: 700;
+		}
+		.section-title:after {
+			content: '';
+			display: block;
+			width: 80px;
+			height: 4px;
+			background: linear-gradient(90deg, #6e8efb, #a777e3);
+			margin: 0.5rem auto 0;
+			border-radius: 2px;
+		}
+		.card-img-overlay-dark {
+			background: rgba(0, 0, 0, 0.4);
+			color: white;
+		}
+		.floating-btn {
+			position: fixed;
+			bottom: 80px;
+			right: 20px;
+			z-index: 999;
+			width: 60px;
+			height: 60px;
+			border-radius: 50%;
+			box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2);
+			display: flex;
+			align-items: center;
+			justify-content: center;
+			font-size: 24px;
+		}
+		.empty-state {
+			text-align: center;
+			padding: 3rem;
+			background: #f8f9fa;
+			border-radius: 15px;
+		}
+		.empty-state i {
+			font-size: 3rem;
+			color: #6e8efb;
+			margin-bottom: 1rem;
+		}
+		.trending-badge {
+			position: absolute;
+			top: 10px;
+			left: 10px;
+			background: #ff4757;
+			color: white;
+			padding: 3px 10px;
+			border-radius: 20px;
+			font-size: 0.7rem;
+			font-weight: bold;
+		}
+	</style>
+{% endblock %}
+
+{% block body %}
+	<!-- Hero Section -->
+	<section class="hero-section">
+		<div class="container text-center hero-content">
+			<h1 class="display-4 fw-bold mb-4">Découvrez votre ville</h1>
+			<p class="lead mb-5">Trouvez les meilleurs endroits recommandés par la communauté</p>
+			<div class="d-flex justify-content-center gap-3">
+				<a href="#" class="btn btn-light btn-lg px-4 rounded-pill shadow-sm">Explorer</a>
+				<a href="#" class="btn btn-outline-light btn-lg px-4 rounded-pill shadow-sm">S'inscrire</a>
+			</div>
+		</div>
+	</section>
+
+	<!-- Categories Section -->
+	<section class="container mb-5">
+		<h2 class="section-title">
+			Explorez nos catégories
+			<br>
+			<small class="text-muted">Quelques une de nos catégories</small>
+		</h2>
+		{% if categories is empty %}
+			<div class="empty-state">
+				<i class="fas fa-folder-open"></i>
+				<h3>Aucune catégorie disponible</h3>
+				<p class="text-muted">Revenez plus tard pour découvrir nos catégories</p>
+			</div>
+		{% else %}
+			<div class="row g-4">
+				{% for category in categories %}
+					<div class="col-md-4">
+						<div class="category-card card h-100 shadow-sm">
+							<div class="card-body text-center p-4">
+								<div class="icon-wrapper mb-3">
+									<i class="fas fa-{{ iconForCategory(category.name) }} fa-3x" style="color: #6e8efb;"></i>
+								</div>
+								<h3 class="h5">{{ category.name }}</h3>
+								<p class="text-muted small">Découvrez nos
+									{{ category.name|lower }}
+									recommandés</p>
+								<a href="{{path("app_category_show", {slug: category.slug})}}" class="btn btn-sm btn-outline-primary rounded-pill mt-2">Explorer</a>
+							</div>
+						</div>
+					</div>
+				{% endfor %}
+			</div>
+		{% endif %}
+	</section>
+
+	<!-- Best Establishments Section -->
+	<section class="container mb-5">
+		<h2 class="section-title">Nos meilleurs établissements</h2>
+		{% if premiumEstablishments is empty %}
+			<div class="empty-state">
+				<i class="fas fa-store-alt"></i>
+				<h3>Aucun établissement à afficher</h3>
+				<p class="text-muted">Nous n'avons pas encore d'établissements à vous recommander</p>
+				<a class="btn btn-primary mt-3">Proposer un établissement</a>
+			</div>
+		{% else %}
+			<div class="row g-4">
+				{% for establishment in premiumEstablishments %}
+					<div class="col-lg-3 col-md-6">
+						<div class="establishment-card card h-100 shadow-sm">
+							<div class="position-relative">
+								{% if establishment.images|length > 0 %}
+									<img src="{{ asset('establishments/' ~ establishment.images.first().imageUrl) }}" class="card-img-top" alt="{{ establishment.name }}" style="height: 180px; object-fit: cover;">
+								{% else %}
+									<div class="card-img-top bg-light d-flex align-items-center justify-content-center" style="height: 180px;">
+										<i class="fas fa-store-alt fa-3x text-muted"></i>
+									</div>
+								{% endif %}
+								{% if loop.index <= 3 %}
+									<span class="trending-badge">Top
+										{{ loop.index }}</span>
+								{% endif %}
+								<span class="top-badge">⭐ 4.5+</span>
+							</div>
+							<div class="card-body">
+								<div class="d-flex justify-content-between align-items-start mb-2">
+									<h5 class="card-title mb-0">{{ establishment.name }}</h5>
+									<div class="rating-stars">
+										<i class="fas fa-star"></i>
+										<small>{{ establishment.averageRating|number_format(1) }}</small>
+									</div>
+								</div>
+								<p class="card-text text-muted small mb-2">
+									<i class="fas fa-{{ iconForType(establishment.type.name) }} me-1"></i>
+									{{ establishment.type ? establishment.type.name : 'Non spécifié' }}
+								</p>
+								<p class="card-text small">{{ establishment.description|u.truncate(60, '...') }}</p>
+							</div>
+							<div class="card-footer bg-white border-top-0 pt-0">
+								<a href="#" class="btn btn-sm btn-primary rounded-pill">Découvrir</a>
+								<a href="#" class="btn btn-sm btn-outline-secondary rounded-pill ms-2">
+									<i class="fas fa-map-marker-alt"></i>
+									Localiser
+								</a>
+							</div>
+						</div>
+					</div>
+				{% endfor %}
+			</div>
+			<div class="text-center mt-4">
+				<a href="#" class="btn btn-outline-primary">Voir tous les établissements</a>
+			</div>
+		{% endif %}
+	</section>
+
+	<!-- Recent Posts Section -->
+	<section class="container mb-5">
+		<h2 class="section-title">Actualités & Conseils</h2>
+		{% if recentPosts is empty %}
+			<div class="empty-state">
+				<i class="fas fa-newspaper"></i>
+				<h3>Aucune actualité pour le moment</h3>
+				<p class="text-muted">Revenez plus tard pour découvrir nos dernières publications</p>
+			</div>
+		{% else %}
+			<div class="row g-4">
+				{% for post in recentPosts %}
+					<div class="col-lg-4 col-md-6">
+						<div class="card h-100 shadow-sm border-0">
+							{% if post.images|length > 0 %}
+								<img src="{{ asset('posts/' ~ post.images.first().imageUrl) }}" class="card-img-top" alt="{{ post.title }}" style="height: 200px; object-fit: cover; border-radius: 15px 15px 0 0;">
+							{% else %}
+								<div class="card-img-top bg-light d-flex align-items-center justify-content-center" style="height: 200px; border-radius: 15px 15px 0 0;">
+									<i class="fas fa-newspaper fa-3x text-muted"></i>
+								</div>
+							{% endif %}
+							<div class="card-body">
+								<div class="d-flex justify-content-between align-items-start mb-2">
+									<span class="badge bg-primary rounded-pill">
+										{# {{ post.establishment.type.name }} #}
+										Type
+									</span>
+									<small class="text-muted">
+										<i class="far fa-clock me-1"></i>
+										{{ post.createdAt|date('d/m/Y') }}
+									</small>
+								</div>
+								<h5 class="card-title">{{ post.title }}</h5>
+								<p class="card-text">{{ post.content|u.truncate(100, '...') }}</p>
+							</div>
+							<div class="card-footer bg-white border-top-0 d-flex justify-content-between align-items-center">
+								<a href="#" class="btn btn-sm btn-outline-primary rounded-pill">Lire plus</a>
+								<div>
+									<span class="me-2">
+										<i class="far fa-thumbs-up"></i>
+										<small>{{ post.likes|length }}</small>
+									</span>
+									<span>
+										<i class="far fa-comment"></i>
+										<small>{{ post.comments|length }}</small>
+									</span>
+								</div>
+							</div>
+						</div>
+					</div>
+				{% endfor %}
+			</div>
+		{% endif %}
+	</section>
+
+	<!-- Call to Action -->
+	<section class="bg-light py-5 mb-5 rounded-3">
+		<div class="container text-center py-4">
+			<h2 class="mb-4">Vous gérez un établissement ?</h2>
+			<p class="lead mb-4">Rejoignez MayMap pour augmenter votre visibilité et attirer plus de clients</p>
+			<a href="#" class="btn btn-primary btn-lg px-4 rounded-pill shadow-sm">Inscrire mon établissement</a>
+		</div>
+	</section>
+{% endblock %}

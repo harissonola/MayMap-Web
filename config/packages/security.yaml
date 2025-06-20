@@ -1,0 +1,104 @@
+security:
+    password_hashers:
+        Symfony\Component\Security\Core\User\PasswordAuthenticatedUserInterface: 'auto'
+        App\Entity\User:
+            algorithm: auto
+
+    providers:
+        app_user_provider:
+            entity:
+                class: App\Entity\User
+                property: email
+
+        app_api_provider:
+            entity:
+                class: App\Entity\User
+                property: username
+
+    firewalls:
+        dev:
+            pattern: ^/(_(profiler|wdt)|css|images|js)/
+            security: false
+
+        api_register:
+            pattern: ^/api/register
+            stateless: true
+            security: false
+
+        api_verify:
+            pattern: ^/api/verify
+            stateless: true
+            security: false
+
+        api_establishment_types:
+            pattern: ^/api/establishment/types
+            stateless: true
+            security: false
+
+        api_search:
+            pattern: ^/api/search
+            stateless: true
+            security: false
+
+        api_profile_establishment:
+            pattern: ^/api/profile/establishment/\d+$
+            stateless: true
+            security: false
+
+        api_profile_user:
+            pattern: ^/api/profile/user/\d+$
+            stateless: true
+            security: false
+
+        api_login:
+            pattern: ^/api/login
+            stateless: true
+            json_login:
+                check_path: /api/login
+                username_path: email
+                password_path: password
+                success_handler: lexik_jwt_authentication.handler.authentication_success
+                failure_handler: lexik_jwt_authentication.handler.authentication_failure
+            provider: app_user_provider
+            custom_authenticators:
+                - App\Security\ApiAuthAuthenticator
+
+        api:
+            pattern: ^/api
+            stateless: true
+            entry_point: jwt
+            jwt: ~
+            provider: app_api_provider
+            custom_authenticators:
+                - App\Security\ApiAuthenticator
+
+        main:
+            lazy: true
+            provider: app_user_provider
+            custom_authenticator: App\Security\AppAuthenticator
+            logout:
+                path: app_logout
+            remember_me:
+                secret: '%kernel.secret%'
+                lifetime: 604800
+                path: /
+                always_remember_me: true
+
+    access_control:
+        - { path: ^/api/login, roles: PUBLIC_ACCESS }
+        - { path: ^/api/posts/feed, roles: PUBLIC_ACCESS }
+        - { path: ^/api/profile/user/\d+$, roles: PUBLIC_ACCESS }
+        - { path: ^/api/profile/establishment/\d+$, roles: PUBLIC_ACCESS }
+        - { path: ^/api/register, roles: PUBLIC_ACCESS }
+        - { path: ^/api, roles: IS_AUTHENTICATED_FULLY }
+
+when@test:
+    security:
+        password_hashers:
+            Symfony\Component\Security\Core\User\PasswordAuthenticatedUserInterface:
+                algorithm: auto
+                cost: 4
+                time_cost: 3
+                memory_cost: 10
+            App\Entity\User:
+                algorithm: auto

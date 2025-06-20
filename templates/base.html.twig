@@ -1,0 +1,109 @@
+<!DOCTYPE html>
+<html lang="fr" class="light-style layout-navbar-fixed layout-menu-fixed" dir="ltr">
+    <head>
+        <meta charset="UTF-8">
+        <title>{% block title %}{% endblock %} | MayMap</title>
+        <link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 128 128%22><text y=%221.2em%22 font-size=%2296%22>⚫️</text><text y=%221.3em%22 x=%220.2em%22 font-size=%2276%22 fill=%22%23fff%22>sf</text></svg>">
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+        {% block stylesheets %}
+            <link rel="stylesheet" href="{{asset("sneatLocalCDN/fontawesome/css/all.min.css")}}"/>
+		<link rel="stylesheet" href="{{asset("sneatLocalCDN/boxicons/css/boxicons.min.css")}}">
+		<link rel="stylesheet" href="{{asset("bootstrap-icons/bootstrap-icons.css")}}">
+		<link rel="stylesheet" href="{{asset("sneatLocalCDN/assets/vendor/fonts/boxicons.css")}}"/>
+		<link rel="stylesheet" href="{{asset("sneatLocalCDN/assets/vendor/css/core.css")}}" class="template-customizer-core-css"/>
+		<link rel="stylesheet" href="{{asset("sneatLocalCDN/assets/vendor/css/theme-default.css")}}" class="template-customizer-theme-css"/>
+		<link rel="stylesheet" href="{{asset("sneatLocalCDN/assets/vendor/libs/perfect-scrollbar/perfect-scrollbar.css")}}"/>
+		<link rel="stylesheet" href="{{asset("sneatLocalCDN/assets/css/demo.css")}}"/>
+		<link rel="stylesheet" href="{{asset("sneatLocalCDN/assets/vendor/libs/apex-charts/apex-charts.css")}}"/>
+		<link rel="stylesheet" href="{{asset("sneatLocalCDN/assets/vendor/libs/sweetalert2/sweetalert2.css")}}">
+            <link rel="stylesheet" href="{{ asset('fontawesome/css/all.min.css') }}">
+            <style>
+                .bottom-nav {
+                    position: fixed;
+                    bottom: 0;
+                    left: 0;
+                    right: 0;
+                    background-color: white;
+                    box-shadow: 0 -2px 5px rgba(0,0,0,0.1);
+                    display: flex;
+                    justify-content: space-around;
+                    padding: 10px 0;
+                    z-index: 1000;
+                }
+                
+                .nav-item {
+                    display: flex;
+                    flex-direction: column;
+                    align-items: center;
+                    color: #666;
+                    text-decoration: none;
+                    font-size: 12px;
+                    flex: 1;
+                    max-width: 20%;
+                }
+                
+                .nav-item.active {
+                    color: #6200ee;
+                }
+                
+                .nav-icon {
+                    font-size: 20px;
+                    margin-bottom: 4px;
+                }
+                
+                main {
+                    padding-bottom: 70px; /* Pour éviter que le contenu soit caché par la bottom nav */
+                }
+
+                .nav-badge {
+                    position: absolute;
+                    top: -5px;
+                    right: 10px;
+                    background-color: #ff4757;
+                    color: white;
+                    border-radius: 50%;
+                    width: 18px;
+                    height: 18px;
+                    display: flex;
+                    align-items: center;
+                    justify-content: center;
+                    font-size: 10px;
+                }
+
+                .nav-item-wrapper {
+                    position: relative;
+                    display: flex;
+                    flex-direction: column;
+                    align-items: center;
+                }
+            </style>
+        {% endblock %}
+    </head>
+    <body >
+
+        {% include 'partials/flash.html.twig' %}
+
+        <main>
+            {% block body %}{% endblock %}
+        </main>
+        
+        
+        {{ include('partials/bottom_nav.html.twig') }}
+
+
+        {% block javascripts %}
+			<script src="{{asset("sneatLocalCDN/assets/vendor/")}}libs/jquery/jquery.js"></script>
+			<script src="{{asset("sneatLocalCDN/assets/vendor/")}}libs/popper/popper.js"></script>
+			<script src="{{asset("sneatLocalCDN/assets/vendor/")}}js/bootstrap.js"></script>
+			<script src="{{asset("sneatLocalCDN/assets/vendor/")}}libs/perfect-scrollbar/perfect-scrollbar.js"></script>
+			<script src="{{asset("sneatLocalCDN/assets/vendor/")}}js/menu.js" data-turbo-eval="false" data-turbo-permanent></script>
+			<script src="{{asset("sneatLocalCDN/assets/libs/sweetalert2/sweetalert2.js")}}" data-turbo-eval="false" data-turbo-permanent></script>
+			<script src="{{asset("sneatLocalCDN/assets/vendor/libs/apex-charts/apexcharts.js")}}" data-turbo-eval="false" data-turbo-permanent></script>
+			<script src="{{asset("sneatLocalCDN/assets/")}}js/main.js" defer data-turbo-eval="false" data-turbo-permanent></script>
+			<script src="{{asset("sneatLocalCDN/assets/")}}js/dashboards-analytics.js" data-turbo-eval="false" data-turbo-permanent></script>
+                <script src="{{ asset('aos/aos.js') }}" defer></script>
+            {% block importmap %}{{ importmap('app') }}{% endblock %}
+        {% endblock %}
+    </body>
+</html>

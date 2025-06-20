@@ -1,0 +1,8 @@
+'%count% year|%count% years': '%count% año|%count% años'
+'%count% month|%count% months': '%count% mes|%count% meses'
+'%count% day|%count% days': '%count% día|%count% días'
+'%count% hour|%count% hours': '%count% hora|%count% horas'
+'%count% minute|%count% minutes': '%count% minuto|%count% minutos'
+'The link to verify your email has expired. Please request a new link.': 'Ha expirado el enlace para verificar tu correo. Favor de solicitar un nuevo enlace.'
+'The link to verify your email is invalid. Please request a new link.': 'El enlace para verificar tu correo es inválido. Favor de solicitar un nuevo enlace.'
+'The link to verify your email appears to be for a different account or email. Please request a new link.': 'Parece que el enlace para verificar tu correo es para una cuenta o correo diferente. Favor de solicitar un nuevo enlace.'
