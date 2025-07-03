@@ -29,20 +29,34 @@ class UserController extends AbstractController
 
         #[Route('/list', name: 'api_user_list', methods: ['GET'])]
         public function list(
-            PostRepository $postRepository,
-            SerializerInterface $serializer,
-            UserRepository $userRepository
+            Request $request,
+            UserRepository $userRepository,
+            SerializerInterface $serializer
         ): JsonResponse
         {
-            $user = $this->getUser();
+            /** @var User $currentUser */
+            $currentUser = $this->getUser();
 
-            if (!$user instanceof User) {
-                return new JsonResponse(['error' => 'User not found'], 404);
+            if (!$currentUser) {
+                return new JsonResponse(['error' => 'Authentication required'], 401);
             }
 
-            $users = $userRepository->findAll();
+            // Récupération des paramètres de recherche et de pagination
+            $search = $request->query->get('search', '');
+            $page = $request->query->getInt('page', 1);
+            $limit = $request->query->getInt('limit', 10);
 
-            $json = $serializer->serialize($users, 'json', ['groups' => 'user:list']);
+            // Exclusion de l'utilisateur courant des résultats
+            $users = $userRepository->searchUsers($search, $currentUser->getId(), $page, $limit);
+
+            // Sérialisation avec le groupe user:list
+            $json = $serializer->serialize($users, 'json', [
+                'groups' => 'user:list',
+                'circular_reference_handler' => function ($object) {
+                    return $object->getId();
+                }
+            ]);
+
             return new JsonResponse($json, 200, [], true);
         }
 

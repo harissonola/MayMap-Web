@@ -25,15 +25,15 @@ class Message
     private ?User $sender = null;
 
     #[ORM\Column(type: 'text')]
-    #[Groups(['message_details', 'conversation_details'])]
+    #[Groups(['message_details', 'conversation_details', 'conversation_list'])]
     private ?string $content = null;
 
     #[ORM\Column]
-    #[Groups(['message_details', 'conversation_details'])]
+    #[Groups(['message_details', 'conversation_details', 'conversation_list'])]
     private \DateTimeImmutable $createdAt;
 
     #[ORM\Column(nullable: true)]
-    #[Groups(['message_details', 'conversation_details'])]
+    #[Groups(['message_details'])]
     private ?\DateTimeImmutable $readAt = null;
 
     #[ORM\Column(length: 255, nullable: true)]
@@ -48,8 +48,6 @@ class Message
     {
         $this->createdAt = new \DateTimeImmutable();
     }
-
-    // Getters et Setters
 
     public function getId(): ?int
     {
@@ -108,6 +106,12 @@ class Message
     public function setReadAt(?\DateTimeImmutable $readAt): self
     {
         $this->readAt = $readAt;
+        return $this;
+    }
+
+    public function markAsRead(): self
+    {
+        $this->readAt = new \DateTimeImmutable();
         return $this;
     }
 

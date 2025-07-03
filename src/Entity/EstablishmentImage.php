@@ -12,11 +12,11 @@ class EstablishmentImage
     #[ORM\Id]
         #[ORM\GeneratedValue]
         #[ORM\Column]
-        #[Groups(['establishment_public', 'user_profile', 'establishment_manage', 'establishment:read'])]
+        #[Groups(['establishment_public', 'user_profile', 'establishment_manage', 'establishment:read', 'message_list', 'message_details', 'user:list', 'conversation_list'])]
         private ?int $id = null;
 
         #[ORM\Column(length: 255)]
-        #[Groups(['establishment_public', 'user_profile', 'establishment_manage', 'establishment:read'])]
+        #[Groups(['establishment_public', 'user_profile', 'establishment_manage', 'establishment:read', 'message_list', 'message_details', 'user:list', 'conversation_list'])]
         private ?string $imageUrl = null;
 
         #[ORM\Column]
@@ -27,7 +27,7 @@ class EstablishmentImage
         private ?Establishment $establishment = null;
 
         #[ORM\Column]
-        #[Groups(['establishment_public', 'user_profile', 'establishment_manage', 'establishment:read'])]
+        #[Groups(['establishment_public', 'user_profile', 'establishment_manage', 'establishment:read', 'message_list', 'message_details', 'user:list', 'conversation_list'])]
         private ?bool $isLogo = null;
 
     public function __construct()

@@ -20,7 +20,7 @@ class Establishment
     private ?int $id = null;
 
     #[ORM\Column(length: 255)]
-    #[Groups(['user_profile', 'establishment_manage', 'establishment_public', 'establishment:read'])]
+    #[Groups(['user_profile', 'establishment_manage', 'establishment_public', 'establishment:read', 'message_list', 'message_details', 'user:list', 'conversation_list'])]
     #[Translatable()]
     private ?string $name = null;
 
@@ -81,7 +81,7 @@ class Establishment
     private ?Subscription $subscription = null;
 
     #[ORM\OneToMany(targetEntity: EstablishmentImage::class, mappedBy: 'establishment')]
-   #[Groups(['establishment_manage', 'user_profile', 'establishment_public', 'establishment:read'])]
+   #[Groups(['establishment_manage', 'user_profile', 'establishment_public', 'establishment:read', 'message_list', 'message_details', 'user:list', 'conversation_list'])]
     private Collection $images;
 
     #[ORM\OneToMany(mappedBy: 'etablissement', targetEntity: Horaire::class, cascade: ['persist', 'remove'])]

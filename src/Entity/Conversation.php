@@ -14,36 +14,49 @@ class Conversation
     #[ORM\Id]
     #[ORM\GeneratedValue]
     #[ORM\Column]
-    #[Groups(['conversation_list', 'message_details'])]
+    #[Groups(['conversation_list', 'conversation_details', 'message_details'])]
     private ?int $id = null;
 
     #[ORM\ManyToOne(targetEntity: User::class)]
     #[ORM\JoinColumn(nullable: false)]
-    #[Groups(['conversation_list'])]
+    #[Groups(['conversation_list', 'conversation_details'])]
     private ?User $user1 = null;
 
     #[ORM\ManyToOne(targetEntity: User::class)]
     #[ORM\JoinColumn(nullable: false)]
-    #[Groups(['conversation_list'])]
+    #[Groups(['conversation_list', 'conversation_details'])]
     private ?User $user2 = null;
 
-    #[ORM\OneToMany(targetEntity: Message::class, mappedBy: 'conversation', cascade: ['persist', 'remove'])]
-    #[Groups(['conversation_details'])]
+    #[ORM\OneToMany(targetEntity: Message::class, mappedBy: 'conversation', cascade: ['persist', 'remove'], orphanRemoval: true)]
+    #[Groups(['conversation_details', 'conversation_list'])]
     private Collection $messages;
 
     #[ORM\Column]
+    #[Groups(['conversation_list', 'conversation_details'])]
     private \DateTimeImmutable $createdAt;
 
+    #[ORM\Column]
+    #[Groups(['conversation_list', 'conversation_details'])]
+    private \DateTimeImmutable $updatedAt;
+
     #[ORM\Column(nullable: true)]
-    private ?\DateTimeImmutable $updatedAt = null;
+    #[Groups(['conversation_list'])]
+    private ?string $lastMessageContent = null;
+
+    #[ORM\Column(nullable: true)]
+    #[Groups(['conversation_list'])]
+    private ?\DateTimeImmutable $lastMessageDate = null;
 
     public function __construct()
     {
         $this->messages = new ArrayCollection();
         $this->createdAt = new \DateTimeImmutable();
-    }
+        $this->updatedAt = new \DateTimeImmutable();
+        $this->lastMessageDate = new \DateTimeImmutable();
+        $this->lastMessageContent = '';
 
-    // Getters et Setters
+
+    }
 
     public function getId(): ?int
     {
@@ -82,6 +95,7 @@ class Conversation
         if (!$this->messages->contains($message)) {
             $this->messages->add($message);
             $message->setConversation($this);
+            $this->updateLastMessage($message);
         }
         return $this;
     }
@@ -101,15 +115,38 @@ class Conversation
         return $this->createdAt;
     }
 
-    public function getUpdatedAt(): ?\DateTimeImmutable
+    public function setCreatedAt(\DateTimeImmutable $createdAt): self
+    {
+        $this->createdAt = $createdAt;
+        return $this;
+    }
+
+    public function getUpdatedAt(): \DateTimeImmutable
     {
         return $this->updatedAt;
     }
 
-    public function setUpdatedAt(?\DateTimeImmutable $updatedAt): self
+    public function setUpdatedAt(\DateTimeImmutable $updatedAt): self
     {
         $this->updatedAt = $updatedAt;
         return $this;
+    }
+
+    public function getLastMessageContent(): ?string
+    {
+        return $this->lastMessageContent;
+    }
+
+    public function getLastMessageDate(): ?\DateTimeImmutable
+    {
+        return $this->lastMessageDate;
+    }
+
+    public function updateLastMessage(?Message $message): void
+    {
+            $this->lastMessageContent = $message->getContent();
+            $this->lastMessageDate = $message->getCreatedAt();
+            $this->updatedAt = new \DateTimeImmutable();
     }
 
     public function getOtherUser(User $currentUser): ?User
@@ -120,5 +157,10 @@ class Conversation
             return $this->user1;
         }
         return null;
+    }
+
+    public function hasUser(User $user): bool
+    {
+        return $this->user1->getId() === $user->getId() || $this->user2->getId() === $user->getId();
     }
 }

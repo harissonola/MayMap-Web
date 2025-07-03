@@ -30,12 +30,24 @@ class MessageController extends AbstractController
         /** @var User $currentUser */
         $currentUser = $this->security->getUser();
 
-        // Récupère toutes les conversations de l'utilisateur
         $conversations = $this->conversationRepository->findUserConversations($currentUser);
 
-        $data = $this->serializer->serialize($conversations, 'json', ['groups' => 'conversation_list']);
+        // Ajoutez l'ID de l'utilisateur courant à chaque conversation
+        $data = array_map(function($conversation) use ($currentUser) {
+            return [
+                'id' => $conversation->getId(),
+                'user1' => $conversation->getUser1(),
+                'user2' => $conversation->getUser2(),
+                'createdAt' => $conversation->getCreatedAt(),
+                'updatedAt' => $conversation->getUpdatedAt(),
+                'lastMessage' => $conversation->getMessages()->last() ?: null,
+                'currentUserId' => $currentUser->getId(), // Ajout de l'ID courant
+            ];
+        }, $conversations);
 
-        return new JsonResponse($data, 200, [], true);
+        return new JsonResponse($this->serializer->serialize($data, 'json', [
+            'groups' => ['conversation_list', 'user:list']
+        ]), 200, [], true);
     }
 
     #[Route('/{conversationId}', name: 'api_messages_create', methods: ['POST'])]
@@ -74,7 +86,7 @@ class MessageController extends AbstractController
         return new JsonResponse(['status' => 'Message sent'], 201);
     }
 
-    #[Route('/conversation/{userId}', name: 'api_messages_conversation_create', methods: ['POST'])]
+    #[Route('/conversation/{userId}', name: 'api_messages_conversation_create', methods: ['POST'] )]
     public function createConversation(Request $request, int $userId): JsonResponse
     {
         /** @var User $currentUser */
@@ -87,7 +99,7 @@ class MessageController extends AbstractController
 
         // Vérifier si une conversation existe déjà
         $existingConversation = $this->conversationRepository->findConversationByUsers($currentUser, $otherUser);
-        
+
         if ($existingConversation) {
             return new JsonResponse([
                 'conversation_id' => $existingConversation->getId(),
@@ -95,11 +107,11 @@ class MessageController extends AbstractController
             ], 200);
         }
 
-        // Créer une nouvelle conversation
+        // Créer une nouvelle conversation avec les bons utilisateurs
         $conversation = new Conversation();
         $conversation->setUser1($currentUser);
-        $conversation->setUser2($otherUser);
-        
+        $conversation->setUser2($otherUser); // Assurez-vous que c'est bien l'autre utilisateur
+
         $this->em->persist($conversation);
         $this->em->flush();
 

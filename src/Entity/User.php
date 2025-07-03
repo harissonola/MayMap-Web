@@ -21,18 +21,18 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface
     #[ORM\Id]
     #[ORM\GeneratedValue]
     #[ORM\Column]
-    #[Groups(['user_profile', 'establishment_public', 'message_list', 'message_details', 'user:list'])]
+    #[Groups(['user_profile', 'establishment_public', 'message_list', 'message_details', 'user:list', 'conversation_list'])]
     private ?int $id = null;
 
     #[ORM\Column(length: 180)]
-    #[Groups(['user_profile', 'message_list', 'message_details', 'user:list'])]
+    #[Groups(['user_profile', 'message_list', 'message_details', 'user:list', 'conversation_list'])]
     private ?string $email = null;
 
     /**
      * @var list<string> The user roles
      */
     #[ORM\Column]
-    #[Groups(['user_profile', 'establishment_public', 'message_list', 'message_details', 'user:list'])]
+    #[Groups(['user_profile', 'establishment_public', 'message_list', 'message_details', 'user:list', 'conversation_list'])]
     private array $roles = [];
 
     /**
@@ -42,32 +42,32 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface
     private ?string $password = null;
 
     #[ORM\Column(length: 255)]
-    #[Groups(['user_profile', 'establishment_public', 'message_list', 'message_details', 'user:list'])]
+    #[Groups(['user_profile', 'establishment_public', 'message_list', 'message_details', 'user:list', 'conversation_list'])]
     private ?string $username = null;
 
     #[ORM\Column(length: 255)]
-    #[Groups(['user_profile', 'establishment_public', 'message_list', 'message_details', 'user:list'])]
+    #[Groups(['user_profile', 'establishment_public', 'message_list', 'message_details', 'user:list', 'conversation_list'])]
     private ?string $avatar = null;
 
     #[ORM\Column(length: 255)]
-    #[Groups(['user_profile', 'establishment_public', 'message_list', 'message_details', 'user:list'])]
+    #[Groups(['user_profile', 'establishment_public', 'message_list', 'message_details', 'user:list', 'conversation_list'])]
     private ?string $fname = null;
 
     #[ORM\Column(length: 255)]
-    #[Groups(['user_profile', 'establishment_public', 'message_list', 'message_details', 'user:list'])]
+    #[Groups(['user_profile', 'establishment_public', 'message_list', 'message_details', 'user:list', 'conversation_list'])]
     private ?string $lname = null;
 
     #[ORM\Column(length: 5, options: ['default' => 'fr'])]
     #[Assert\Choice(choices: ['fr', 'en', 'es'], message: 'Langue non supportée')]
-    #[Groups(['user_profile', 'user:list'])]
+    #[Groups(['user_profile', 'user:list', 'conversation_list'])]
     private string $language = 'fr';
 
     #[ORM\Column]
-    #[Groups(['user_profile', 'establishment_public', 'user:list'])]
+    #[Groups(['user_profile', 'establishment_public', 'user:list', 'conversation_list'])]
     private ?bool $isVerified = null;
 
     #[ORM\Column]
-    #[Groups(['user_profile', 'establishment_public', 'user:list'])]
+    #[Groups(['user_profile', 'establishment_public', 'user:list', 'conversation_list'])]
     private ?\DateTimeImmutable $createdAt = null;
 
     #[ORM\Column(type: 'datetime_immutable')]
@@ -81,7 +81,7 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface
     private Collection $favorites;
 
     #[ORM\OneToOne(targetEntity: Establishment::class, mappedBy: 'owner')]
-    #[Groups(['user_profile'])]
+    #[Groups(['user_profile', 'message_list', 'message_details', 'user:list', 'conversation_list'])]
     private ?Establishment $establishment = null;
 
     /**
@@ -113,6 +113,7 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface
      * @var Collection<int, Post>
      */
     #[ORM\OneToMany(targetEntity: Post::class, mappedBy: 'user')]
+    #[Groups(['user_profile'])]
     private Collection $posts;
 
     /**
@@ -160,9 +161,47 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface
         return $this->conversationsAsUser1;
     }
 
+    public function addConversationAsUser1(Conversation $conversation): static
+    {
+        if (!$this->conversationsAsUser1->contains($conversation)) {
+            $this->conversationsAsUser1->add($conversation);
+            $conversation->setUser1($this);
+        }
+        return $this;
+    }
+
+    public function removeConversationAsUser1(Conversation $conversation): static
+    {
+        if ($this->conversationsAsUser1->removeElement($conversation)) {
+            if ($conversation->getUser1() === $this) {
+                $conversation->setUser1(null);
+            }
+        }
+        return $this;
+    }
+
     public function getConversationsAsUser2(): Collection
     {
         return $this->conversationsAsUser2;
+    }
+
+    public function addConversationAsUser2(Conversation $conversation): static
+    {
+        if (!$this->conversationsAsUser2->contains($conversation)) {
+            $this->conversationsAsUser2->add($conversation);
+            $conversation->setUser2($this);
+        }
+        return $this;
+    }
+
+    public function removeConversationAsUser2(Conversation $conversation): static
+    {
+        if ($this->conversationsAsUser2->removeElement($conversation)) {
+            if ($conversation->getUser2() === $this) {
+                $conversation->setUser2(null);
+            }
+        }
+        return $this;
     }
 
     public function getEmail(): ?string
